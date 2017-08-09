@@ -17,7 +17,7 @@
   This binding is distributed with all necessary binaries (object files, DLLs)
   precompiled. For details please refer to file bin_readme.txt.
 
-  Â©FrantiÅ¡ek Milt 2017-08-07
+  ©František Milt 2017-08-07
 
   Version 1.0
 
@@ -36,24 +36,24 @@ unit ZLibDynamic;
 interface
 
 uses
-  ZLibCommon;
+  AuxTypes, ZLibCommon;
 
 {===============================================================================
     Zlib functions
 ===============================================================================}
+// for documentation, see ZLibStatic.pas
+
+//== Procedural types ==========================================================
 
 type
   zlibVersion_t          = Function: PAnsiChar; cdecl;
 
-  deflateInit_t          = Function(strm: z_streamp; level: int): int; cdecl;
   deflate_t              = Function(strm: z_streamp; flush: int): int; cdecl;
   deflateEnd_t           = Function(strm: z_streamp): int; cdecl;
 
-  inflateInit_t          = Function(strm: z_streamp): int; cdecl;
   inflate_t              = Function(strm: z_streamp; flush: int): int; cdecl;
   inflateEnd_t           = Function(strm: z_streamp): int; cdecl;
 
-  deflateInit2_t         = Function(strm: z_streamp; level, method, windowBits, memLevel, strategy: int): int; cdecl;
   deflateSetDictionary_t = Function(strm: z_streamp; dictionary: PByte; dictLength: uInt): int; cdecl;
   deflateGetDictionary_t = Function(strm: z_streamp; dictionary: PByte; dictLength: puInt): int; cdecl;
   deflateCopy_t          = Function(dest, source: z_streamp): int; cdecl;
@@ -65,7 +65,6 @@ type
   deflatePrime_t         = Function(strm: z_streamp; bits, value: int): int; cdecl;
   deflateSetHeader_t     = Function(strm: z_streamp; head: gz_headerp): int; cdecl;
 
-  inflateInit2_t         = Function(strm: z_streamp; windowBits: int): int; cdecl;
   inflateSetDictionary_t = Function(strm: z_streamp; dictionary: PByte; dictLength: uInt): int; cdecl;
   inflateGetDictionary_t = Function(strm: z_streamp; dictionary: PByte; dictLength: puInt): int; cdecl;
   inflateSync_t          = Function(strm: z_streamp): int; cdecl;
@@ -76,7 +75,6 @@ type
   inflateMark_t          = Function(strm: z_streamp): long; cdecl;
   inflateGetHeader_t     = Function(strm: z_streamp; head: gz_headerp): int; cdecl;
 
-  inflateBackInit_t      = Function(strm: z_streamp; windowBits: int; window: PByte): int; cdecl;
   inflateBack_t          = Function(strm: z_streamp; in_f: in_func; in_desc: Pointer; out_f: out_func; out_desc: Pointer): int; cdecl;
   inflateBackEnd_t       = Function(strm: z_streamp): int; cdecl;
 
@@ -97,7 +95,7 @@ type
   gzfread_t              = Function(buf: Pointer; size, nitems: z_size_t; aFile: gzFile): z_size_t; cdecl;
   gzwrite_t              = Function(aFile: gzFile; buf: Pointer; len: unsigned): int; cdecl;
   gzfwrite_t             = Function(buf: Pointer; size, nintems: z_size_t; aFile: gzFile): z_size_t; cdecl;
-  gzprintf_t             = Function(aFile: gzFile; format: PAnsiChar): int; cdecl; varargs;
+  gzprintf_t             = Function(aFile: gzFile; format: PAnsiChar): int; cdecl varargs;
   gzputs_t               = Function(aFile: gzFile; s: PAnsiChar): int; cdecl;
   gzgets_t               = Function(aFile: gzFile; buf: PAnsiChar; len: int): PAnsiChar; cdecl;
   gzputc_t               = Function(aFile: gzFile; c: int): int; cdecl;
@@ -125,7 +123,7 @@ type
   crc32_combine_t        = Function(crc1, crc2: uLong; len2: z_off_t): uLong; cdecl;
 
   deflateInit__t         = Function(strm: z_streamp; level: int; version: PAnsiChar; stream_size: int): int; cdecl;
-  inflateInit__t         = Function(strm: z_streamp; level: int; version: PAnsiChar; stream_size: int): int; cdecl;
+  inflateInit__t         = Function(strm: z_streamp; version: PAnsiChar; stream_size: int): int; cdecl;
   deflateInit2__t        = Function(strm: z_streamp; level, method, windowBits, memLevel, strategy: int; version: PAnsiChar; stream_size: int): int; cdecl;
   inflateInit2__t        = Function(strm: z_streamp; windowBits: int; version: PAnsiChar; stream_size: int): int; cdecl;
   inflateBackInit__t     = Function(strm: z_streamp; windowBits: int; window: PByte; version: PAnsiChar; stream_size: int): int; cdecl;
@@ -152,20 +150,16 @@ type
   gzopen_w_t             = Function(path: PWideChar; mode: PAnsiChar): gzFile; cdecl;
 {$ENDIF GZIP_Support}
 
-//==============================================================================
-
+//== Procedural variables ======================================================
 var
   zlibVersion:          zlibVersion_t;
 
-  deflateInit:          deflateInit_t;
   deflate:              deflate_t;
   deflateEnd:           deflateEnd_t;
 
-  inflateInit:          inflateInit_t;
   inflate:              inflate_t;
   inflateEnd:           inflateEnd_t;
 
-  deflateInit2:         deflateInit2_t;
   deflateSetDictionary: deflateSetDictionary_t;
   deflateGetDictionary: deflateGetDictionary_t;
   deflateCopy:          deflateCopy_t;
@@ -177,7 +171,6 @@ var
   deflatePrime:         deflatePrime_t;
   deflateSetHeader:     deflateSetHeader_t;
 
-  inflateInit2:         inflateInit2_t;
   inflateSetDictionary: inflateSetDictionary_t;
   inflateGetDictionary: inflateGetDictionary_t;
   inflateSync:          inflateSync_t;
@@ -188,7 +181,6 @@ var
   inflateMark:          inflateMark_t;
   inflateGetHeader:     inflateGetHeader_t;
 
-  inflateBackInit:      inflateBackInit_t;
   inflateBack:          inflateBack_t;
   inflateBackEnd:       inflateBackEnd_t;
 
@@ -264,7 +256,15 @@ var
   gzopen_w:             gzopen_w_t;
 {$ENDIF GZIP_Support}
 
-//==============================================================================
+//== Macros ====================================================================
+
+Function deflateInit(strm: z_streamp; level: int): int;{$IFDEF CanInline} inline; {$ENDIF}
+Function inflateInit(strm: z_streamp): int;{$IFDEF CanInline} inline; {$ENDIF}
+Function deflateInit2(strm: z_streamp; level, method, windowBits, memLevel, strategy: int): int;{$IFDEF CanInline} inline; {$ENDIF}
+Function inflateInit2(strm: z_streamp; windowBits: int): int;{$IFDEF CanInline} inline; {$ENDIF}
+Function inflateBackInit(strm: z_streamp; windowBits: int; window: PByte): int;{$IFDEF CanInline} inline; {$ENDIF}
+
+//== Library initialization ====================================================
 
 Function ZLib_Initialize(const {%H-}LibPath: String = LibName): Boolean;
 procedure ZLib_Finalize;
@@ -274,7 +274,42 @@ implementation
 uses
   Windows, StrRect;
 
-//==============================================================================
+//== Macro implementation ======================================================
+
+Function deflateInit(strm: z_streamp; level: int): int;
+begin
+Result := deflateInit_(strm,level,PAnsiChar(ZLIB_VERSION),SizeOf(z_stream_s));
+end;
+
+//------------------------------------------------------------------------------
+
+Function inflateInit(strm: z_streamp): int;
+begin
+Result := inflateInit_(strm,PAnsiChar(ZLIB_VERSION),SizeOf(z_stream_s));
+end;
+
+//------------------------------------------------------------------------------
+
+Function deflateInit2(strm: z_streamp; level, method, windowBits, memLevel, strategy: int): int;
+begin
+Result := deflateInit2_(strm,level,method,windowBits,memLevel,strategy,PAnsiChar(ZLIB_VERSION),SizeOf(z_stream_s));
+end;
+
+//------------------------------------------------------------------------------
+
+Function inflateInit2(strm: z_streamp; windowBits: int): int;
+begin
+Result := inflateInit2_(strm,windowBits,PAnsiChar(ZLIB_VERSION),SizeOf(z_stream_s));
+end;
+
+//------------------------------------------------------------------------------
+
+Function inflateBackInit(strm: z_streamp; windowBits: int; window: PByte): int;
+begin
+Result := inflateBackInit_(strm,windowBits,window,PAnsiChar(ZLIB_VERSION),SizeOf(z_stream_s));
+end;
+
+//== Library initialization implementation =====================================
 
 var
   ZLib_LibHandle: THandle = 0;
@@ -288,15 +323,12 @@ If ZLib_LibHandle = 0 then
       begin
         zlibVersion          := zlibVersion_t(GetProcAddress(ZLib_LibHandle,'zlibVersion'));
 
-        deflateInit          := deflateInit_t(GetProcAddress(ZLib_LibHandle,'deflateInit'));
         deflate              :=     deflate_t(GetProcAddress(ZLib_LibHandle,'deflate'));
         deflateEnd           :=  deflateEnd_t(GetProcAddress(ZLib_LibHandle,'deflateEnd'));
 
-        inflateInit          := inflateInit_t(GetProcAddress(ZLib_LibHandle,'inflateInit'));
         inflate              :=     inflate_t(GetProcAddress(ZLib_LibHandle,'inflate'));
         inflateEnd           :=  inflateEnd_t(GetProcAddress(ZLib_LibHandle,'inflateEnd'));
 
-        deflateInit2         :=         deflateInit2_t(GetProcAddress(ZLib_LibHandle,'deflateInit2'));
         deflateSetDictionary := deflateSetDictionary_t(GetProcAddress(ZLib_LibHandle,'deflateSetDictionary'));
         deflateGetDictionary := deflateGetDictionary_t(GetProcAddress(ZLib_LibHandle,'deflateGetDictionary'));
         deflateCopy          :=          deflateCopy_t(GetProcAddress(ZLib_LibHandle,'deflateCopy'));
@@ -308,7 +340,6 @@ If ZLib_LibHandle = 0 then
         deflatePrime         :=         deflatePrime_t(GetProcAddress(ZLib_LibHandle,'deflatePrime'));
         deflateSetHeader     :=     deflateSetHeader_t(GetProcAddress(ZLib_LibHandle,'deflateSetHeader'));
 
-        inflateInit2         :=         inflateInit2_t(GetProcAddress(ZLib_LibHandle,'inflateInit2'));
         inflateSetDictionary := inflateSetDictionary_t(GetProcAddress(ZLib_LibHandle,'inflateSetDictionary'));
         inflateGetDictionary := inflateGetDictionary_t(GetProcAddress(ZLib_LibHandle,'inflateGetDictionary'));
         inflateSync          :=          inflateSync_t(GetProcAddress(ZLib_LibHandle,'inflateSync'));
@@ -319,7 +350,6 @@ If ZLib_LibHandle = 0 then
         inflateMark          :=          inflateMark_t(GetProcAddress(ZLib_LibHandle,'inflateMark'));
         inflateGetHeader     :=     inflateGetHeader_t(GetProcAddress(ZLib_LibHandle,'inflateGetHeader'));
 
-        inflateBackInit      := inflateBackInit_t(GetProcAddress(ZLib_LibHandle,'inflateBackInit'));
         inflateBack          :=     inflateBack_t(GetProcAddress(ZLib_LibHandle,'inflateBack'));
         inflateBackEnd       :=  inflateBackEnd_t(GetProcAddress(ZLib_LibHandle,'inflateBackEnd'));
 

@@ -17,7 +17,7 @@
   This binding is distributed with all necessary binaries (object files, DLLs)
   precompiled. For details please refer to file bin_readme.txt.
 
-  Â©FrantiÅ¡ek Milt 2017-08-07
+  ©František Milt 2017-08-07
 
   Version 1.0
 
@@ -40,7 +40,7 @@ unit ZLibStatic;
 interface
 
 uses
-  ZLibCommon;
+  AuxTypes, ZLibCommon;
 
 {===============================================================================
     Zlib functions
@@ -55,7 +55,7 @@ Function zlibVersion: PAnsiChar; cdecl; external;
    is automatically made by deflateInit and inflateInit.
  *)
 
-Function deflateInit(strm: z_streamp; level: int): int; cdecl; external;
+Function deflateInit(strm: z_streamp; level: int): int;{$IFDEF CanInline} inline; {$ENDIF}
 (*
      Initializes the internal stream state for compression.  The fields
    zalloc, zfree and opaque must be initialized before by the caller.  If
@@ -202,7 +202,7 @@ Function deflateEnd(strm: z_streamp): int; cdecl; external;
 *)
 
 
-Function inflateInit(strm: z_streamp): int; cdecl; external;
+Function inflateInit(strm: z_streamp): int;{$IFDEF CanInline} inline; {$ENDIF}
 (*
      Initializes the internal stream state for decompression.  The fields
    next_in, avail_in, zalloc, zfree and opaque must be initialized before by
@@ -358,7 +358,7 @@ Function inflateEnd(strm: z_streamp): int; cdecl; external;
     The following functions are needed only in some special applications.
 *)
 
-Function deflateInit2(strm: z_streamp; level, method, windowBits, memLevel, strategy: int): int; cdecl; external;
+Function deflateInit2(strm: z_streamp; level, method, windowBits, memLevel, strategy: int): int;{$IFDEF CanInline} inline; {$ENDIF}
 (*
      This is another version of deflateInit with more compression options.  The
    fields next_in, zalloc, zfree and opaque must be initialized before by the
@@ -629,7 +629,7 @@ Function deflateSetHeader(strm: z_streamp; head: gz_headerp): int; cdecl; extern
    stream state was inconsistent.
 *)
 
-Function inflateInit2(strm: z_streamp; windowBits: int): int; cdecl; external;
+Function inflateInit2(strm: z_streamp; windowBits: int): int;{$IFDEF CanInline} inline; {$ENDIF}
 (*
      This is another version of inflateInit with an extra parameter.  The
    fields next_in, avail_in, zalloc, zfree and opaque must be initialized
@@ -857,7 +857,7 @@ Function inflateGetHeader(strm: z_streamp; head: gz_headerp): int; cdecl; extern
    stream state was inconsistent.
 *)
 
-Function inflateBackInit(strm: z_streamp; windowBits: int; window: PByte): int; cdecl; external;
+Function inflateBackInit(strm: z_streamp; windowBits: int; window: PByte): int;{$IFDEF CanInline} inline; {$ENDIF}
 (*
      Initialize the internal stream state for decompression using inflateBack()
    calls.  The fields zalloc, zfree and opaque in strm must be initialized
@@ -1523,7 +1523,7 @@ Function crc32_combine(crc1, crc2: uLong; len2: z_off_t): uLong; cdecl; external
  * and the compiler's view of z_stream:
  *)
 Function deflateInit_(strm: z_streamp; level: int; version: PAnsiChar; stream_size: int): int; cdecl; external;
-Function inflateInit_(strm: z_streamp; level: int; version: PAnsiChar; stream_size: int): int; cdecl; external;
+Function inflateInit_(strm: z_streamp; version: PAnsiChar; stream_size: int): int; cdecl; external;
 Function deflateInit2_(strm: z_streamp; level, method, windowBits, memLevel, strategy: int; version: PAnsiChar; stream_size: int): int; cdecl; external;
 Function inflateInit2_(strm: z_streamp; windowBits: int; version: PAnsiChar; stream_size: int): int; cdecl; external;
 Function inflateBackInit_(strm: z_streamp; windowBits: int; window: PByte; version: PAnsiChar; stream_size: int): int; cdecl; external;
@@ -1572,49 +1572,104 @@ uses
   Windows, SysUtils;
 {$ENDIF GZIP_Support}
 
-//==============================================================================
+//== Macro implementation ======================================================
+
+Function deflateInit(strm: z_streamp; level: int): int;
+begin
+Result := deflateInit_(strm,level,PAnsiChar(ZLIB_VERSION),SizeOf(z_stream_s));
+end;
+
+//------------------------------------------------------------------------------
+
+Function inflateInit(strm: z_streamp): int;
+begin
+Result := inflateInit_(strm,PAnsiChar(ZLIB_VERSION),SizeOf(z_stream_s));
+end;
+
+//------------------------------------------------------------------------------
+
+Function deflateInit2(strm: z_streamp; level, method, windowBits, memLevel, strategy: int): int;
+begin
+Result := deflateInit2_(strm,level,method,windowBits,memLevel,strategy,PAnsiChar(ZLIB_VERSION),SizeOf(z_stream_s));
+end;
+
+//------------------------------------------------------------------------------
+
+Function inflateInit2(strm: z_streamp; windowBits: int): int;
+begin
+Result := inflateInit2_(strm,windowBits,PAnsiChar(ZLIB_VERSION),SizeOf(z_stream_s));
+end;
+
+//------------------------------------------------------------------------------
+
+Function inflateBackInit(strm: z_streamp; windowBits: int; window: PByte): int;
+begin
+Result := inflateBackInit_(strm,windowBits,window,PAnsiChar(ZLIB_VERSION),SizeOf(z_stream_s));
+end;
+
+//== Object files linking ======================================================
 
 {$IFDEF x64}
-{$IFDEF GZIP_Support}
-  {$LINK 'win64\gzclose.o'}
-  {$LINK 'win64\gzwrite.o'}
-  {$LINK 'win64\gzread.o'}
-  {$LINK 'win64\gzlib.o'}
-{$ENDIF GZIP_Support}
-  {$LINK 'win64\uncompr.o'}
-  {$LINK 'win64\compress.o'}
-  {$LINK 'win64\deflate.o'}
-  {$LINK 'win64\inflate.o'}
-  {$LINK 'win64\infback.o'}
-  {$LINK 'win64\inftrees.o'}
-  {$LINK 'win64\inffast.o'}
-  {$LINK 'win64\trees.o'}
-  {$LINK 'win64\crc32.o'}
-  {$LINK 'win64\adler32.o'}
-  {$LINK 'win64\zutil.o'}
+  {$IFDEF GZIP_Support}
+    {$LINK 'win64\gzclose.o'}
+    {$LINK 'win64\gzwrite.o'}
+    {$LINK 'win64\gzread.o'}
+    {$LINK 'win64\gzlib.o'}
+  {$ENDIF GZIP_Support}
+    {$LINK 'win64\uncompr.o'}
+    {$LINK 'win64\compress.o'}
+    {$LINK 'win64\deflate.o'}
+    {$LINK 'win64\inflate.o'}
+    {$LINK 'win64\infback.o'}
+    {$LINK 'win64\inftrees.o'}
+    {$LINK 'win64\inffast.o'}
+    {$LINK 'win64\trees.o'}
+    {$LINK 'win64\crc32.o'}
+    {$LINK 'win64\adler32.o'}
+    {$LINK 'win64\zutil.o'}
 {$ELSE}
-{$IFDEF GZIP_Support}
-  {$LINK 'win32\gzclose.o'}
-  {$LINK 'win32\gzwrite.o'}
-  {$LINK 'win32\gzread.o'}
-  {$LINK 'win32\gzlib.o'}
-{$ENDIF GZIP_Support}
-  {$LINK 'win32\uncompr.o'}
-  {$LINK 'win32\compress.o'}
-  {$LINK 'win32\deflate.o'}
-  {$LINK 'win32\inflate.o'}
-  {$LINK 'win32\infback.o'}
-  {$LINK 'win32\inftrees.o'}
-  {$LINK 'win32\inffast.o'}
-  {$LINK 'win32\trees.o'}
-  {$LINK 'win32\crc32.o'}
-  {$LINK 'win32\adler32.o'}
-  {$LINK 'win32\zutil.o'}
+{$IFDEF FPC}
+  {$IFDEF GZIP_Support}
+    {$LINK 'win32\gzclose.o'}
+    {$LINK 'win32\gzwrite.o'}
+    {$LINK 'win32\gzread.o'}
+    {$LINK 'win32\gzlib.o'}
+  {$ENDIF GZIP_Support}
+    {$LINK 'win32\uncompr.o'}
+    {$LINK 'win32\compress.o'}
+    {$LINK 'win32\deflate.o'}
+    {$LINK 'win32\inflate.o'}
+    {$LINK 'win32\infback.o'}
+    {$LINK 'win32\inftrees.o'}
+    {$LINK 'win32\inffast.o'}
+    {$LINK 'win32\trees.o'}
+    {$LINK 'win32\crc32.o'}
+    {$LINK 'win32\adler32.o'}
+    {$LINK 'win32\zutil.o'}
+{$ELSE}
+  {$IFDEF GZIP_Support}
+    {$LINK 'win32\gzclose.obj'}
+    {$LINK 'win32\gzwrite.obj'}
+    {$LINK 'win32\gzread.obj'}
+    {$LINK 'win32\gzlib.obj'}
+  {$ENDIF GZIP_Support}
+    {$LINK 'win32\uncompr.obj'}
+    {$LINK 'win32\compress.obj'}
+    {$LINK 'win32\deflate.obj'}
+    {$LINK 'win32\inflate.obj'}
+    {$LINK 'win32\infback.obj'}
+    {$LINK 'win32\inftrees.obj'}
+    {$LINK 'win32\inffast.obj'}
+    {$LINK 'win32\trees.obj'}
+    {$LINK 'win32\crc32.obj'}
+    {$LINK 'win32\adler32.obj'}
+    {$LINK 'win32\zutil.obj'}
+{$ENDIF}
 {$ENDIF}
 
-//==============================================================================
+//== Public functions required by linked object files ==========================
 
-Function memcpy(Dst,Src: Pointer; Count: size_t): Pointer; cdecl; public;
+Function memcpy(Dst,Src: Pointer; Count: size_t): Pointer; cdecl;{$IFDEF FPC} public;{$ENDIF}
 begin
 Move(Src^,Dst^,Count);
 Result := Dst;
@@ -1622,7 +1677,7 @@ end;
 
 //------------------------------------------------------------------------------
 
-Function memset(Ptr: Pointer; Value: int; Count: size_t): Pointer; cdecl; public;
+Function memset(Ptr: Pointer; Value: int; Count: size_t): Pointer; cdecl;{$IFDEF FPC} public;{$ENDIF}
 begin
 FillChar(Ptr^,Count,Byte(Value));
 Result := Ptr;
@@ -1630,19 +1685,30 @@ end;
 
 //------------------------------------------------------------------------------
 
-Function malloc(Size: size_t): Pointer; cdecl; public;
+Function malloc(Size: size_t): Pointer; cdecl;{$IFDEF FPC} public;{$ENDIF}
 begin
 GetMem(Result,Size);
 end;
 
 //------------------------------------------------------------------------------
 
-procedure free(Ptr: Pointer); cdecl; public;
+procedure free(Ptr: Pointer); cdecl;{$IFDEF FPC} public;{$ENDIF}
 begin
 FreeMem(Ptr);
 end;
 
-//==============================================================================
+//------------------------------------------------------------------------------
+
+{$IF not Defined(FPC) and not Defined(x64)} // 32bit Delphi
+
+Function _allrem(a,b: Int64): Int64; cdecl;
+begin
+Result := a mod b;
+end;
+
+{$IFEND}
+
+//== Functions redirected to msvcrt.dll ========================================
 
 {$IFDEF GZIP_Support}
 
@@ -1660,6 +1726,7 @@ var
   CRT_libfunc_strerror:   Pointer;
   CRT_libfunc_errno:      Pointer;
   CRT_libfunc_write:      Pointer;
+  CRT_libfunc_snprintf:   Pointer;
 
 //------------------------------------------------------------------------------
 
@@ -1682,6 +1749,7 @@ If CRT_LibHandle = 0 then
         CRT_libfunc_strerror  := GetProcAddress(CRT_LibHandle,'strerror');
         CRT_libfunc_errno     := GetProcAddress(CRT_LibHandle,'_errno');
         CRT_libfunc_write     := GetProcAddress(CRT_LibHandle,'_write');
+        CRT_libfunc_snprintf  := GetProcAddress(CRT_LibHandle,'_snprintf');
       end
     else raise Exception.Create('ZLib/Initialize: Unable to load msvcrt.dll');
   end;
@@ -1711,10 +1779,10 @@ const
 
 //------------------------------------------------------------------------------
 
-procedure strlen; cdecl; public; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure strlen; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_strlen]
 {$ELSE}
     JMP   CRT_libfunc_strlen
@@ -1723,10 +1791,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure open; cdecl; public; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure open; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_open]
 {$ELSE}
     JMP   CRT_libfunc_open
@@ -1735,10 +1803,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure lseek; cdecl; public; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure lseek; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_lseek]
 {$ELSE}
     JMP   CRT_libfunc_lseek
@@ -1747,10 +1815,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure wcstombs; cdecl; public; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure wcstombs; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_wcstombs]
 {$ELSE}
     JMP   CRT_libfunc_wcstombs
@@ -1759,10 +1827,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure wopen; cdecl; public name '__imp_' + SymbolPrefix + '_wopen'; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure _wopen; cdecl;{$IFDEF FPC} public name '__imp_' + SymbolPrefix + '_wopen';{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_wopen]
 {$ELSE}
     JMP   CRT_libfunc_wopen
@@ -1771,10 +1839,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure __ms_vsnprintf; cdecl; public; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure vsnprintf; cdecl;{$IFDEF FPC} public name SymbolPrefix + '__ms_vsnprintf';{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_vsnprintf]
 {$ELSE}
     JMP   CRT_libfunc_vsnprintf
@@ -1783,10 +1851,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure close; cdecl; public; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure close; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_close]
 {$ELSE}
     JMP   CRT_libfunc_close
@@ -1795,10 +1863,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure memchr; cdecl; public; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure memchr; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_memchr]
 {$ELSE}
     JMP   CRT_libfunc_memchr
@@ -1807,10 +1875,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure read; cdecl; public; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure read; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_read]
 {$ELSE}
     JMP   CRT_libfunc_read
@@ -1819,10 +1887,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure strerror; cdecl; public; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure strerror; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_strerror]
 {$ELSE}
     JMP   CRT_libfunc_strerror
@@ -1831,10 +1899,10 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure errno; cdecl; public name '__imp_' + SymbolPrefix + '_errno'; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure __errno; cdecl;{$IFDEF FPC} public name '__imp_' + SymbolPrefix + '_errno';{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_errno]
 {$ELSE}
     JMP   CRT_libfunc_errno
@@ -1843,13 +1911,25 @@ end;
 
 //------------------------------------------------------------------------------
 
-procedure write; cdecl; public; assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+procedure write; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
 asm
-{$IFNDEF FPC}.NOFRAME{$ENDIF}
 {$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
     JMP   [RIP + CRT_libfunc_write]
 {$ELSE}
     JMP   CRT_libfunc_write
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+procedure snprintf; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+asm
+{$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
+    JMP   [RIP + CRT_libfunc_snprintf]
+{$ELSE}
+    JMP   CRT_libfunc_snprintf
 {$ENDIF}
 end;
 

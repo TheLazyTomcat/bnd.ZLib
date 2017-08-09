@@ -17,7 +17,7 @@
   This binding is distributed with all necessary binaries (object files, DLLs)
   precompiled. For details please refer to file bin_readme.txt.
 
-  Â©FrantiÅ¡ek Milt 2017-08-07
+  ©František Milt 2017-08-07
 
   Version 1.0
 
@@ -54,10 +54,24 @@ type
   uLong    = UInt32;        puLong    = ^uLong;
   unsigned = UInt32;        punsigned = ^unsigned;
   long     = Int32;
+  PPByte   = ^PByte;
 
 {===============================================================================
     Zlib constants and types
 ===============================================================================}
+
+const
+  z_errmsg: array[0..9] of PAnsiChar = (
+    'need dictionary',      // Z_NEED_DICT       2
+    'stream end',           // Z_STREAM_END      1
+    '',                     // Z_OK              0
+    'file error',           // Z_ERRNO         (-1)
+    'stream error',         // Z_STREAM_ERROR  (-2)
+    'data error',           // Z_DATA_ERROR    (-3)
+    'insufficient memory',  // Z_MEM_ERROR     (-4)
+    'buffer error',         // Z_BUF_ERROR     (-5)
+    'incompatible version', // Z_VERSION_ERROR (-6)
+    '');
 
 type
   z_size_t  = size_t;
@@ -81,7 +95,7 @@ const
   WBITS_GZIP = 31;
 
 const
-  ZLIB_VERSION         = '1.2.11';
+  ZLIB_VERSION         = AnsiString('1.2.11');
   ZLIB_VERNUM          = $12b0;
   ZLIB_VER_MAJOR       = 1;
   ZLIB_VER_MINOR       = 2;

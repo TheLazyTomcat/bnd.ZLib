@@ -13,6 +13,14 @@
 {$IFDEF FPC}
   {$MODE ObjFPC}{$H+}
   {$ASMMODE Intel}
+  {$INLINE ON}
+  {$DEFINE CanInline}
+{$ELSE}
+  {$IF CompilerVersion >= 17}  // Delphi 2005+
+    {$DEFINE CanInline}
+  {$ELSE}
+    {$UNDEF CanInline}
+  {$IFEND}
 {$ENDIF}
 
 {
