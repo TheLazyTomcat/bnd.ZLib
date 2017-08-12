@@ -337,7 +337,7 @@ If ZLib_LibHandle <> 0 then
   begin
     FreeLibrary(ZLib_LibHandle);
     ZLib_LibHandle := 0;
-	end;
+  end;
 end;
 
 end.
