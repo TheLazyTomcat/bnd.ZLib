@@ -11,7 +11,7 @@
 {$IFEND}
 
 {$IFDEF FPC}
-  {$MODE ObjFPC}{$H+}
+  {$MODE Delphi}
   {$ASMMODE Intel}
   {$INLINE ON}
   {$DEFINE CanInline}
