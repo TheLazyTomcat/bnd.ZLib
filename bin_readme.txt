@@ -5,12 +5,12 @@ You can find the source in folder zlib_src or on webpage https://zlib.net/.
 Following files were further edited using objconv utility 
 (http://www.agner.org/optimize):
 
-  win64/deflate.o
+  zlib_win64/deflate.o
   
     public symbol ".refptr.zcalloc" made local
     public symbol ".refptr.zcfree" made local  
   
-  win64/inflate.o  
+  zlib_win64/inflate.o  
   
     public symbol ".refptr.zcalloc" made local
     public symbol ".refptr.zcfree" made local 
