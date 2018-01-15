@@ -320,7 +320,7 @@ If ZLib_LibHandle = 0 then
       {$ENDIF GZIP_Support}
 
       {$IFDEF CheckCompatibility}
-        CheckCompatibility(zlibCompileFlags());
+        CheckCompatibility(zlibCompileFlags);
       {$ENDIF}
         Result := True;
 			end
