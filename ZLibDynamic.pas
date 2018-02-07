@@ -19,7 +19,7 @@
 
   ©František Milt 2017-08-07
 
-  Version 1.0
+  Version 1.0.1
 
   Dependencies:
     AuxTypes  - github.com/ncs-sniper/Lib.AuxTypes
@@ -215,108 +215,108 @@ If ZLib_LibHandle = 0 then
     ZLib_LibHandle := LoadLibraryEx(PChar(StrToWin(LibPath)),0,0);
     If ZLib_LibHandle <> 0 then
       begin
-        zlibVersion          := GetProcAddress(ZLib_LibHandle,'zlibVersion');
+        zlibVersion          := GetCheckProcAddress(ZLib_LibHandle,'zlibVersion');
 
-        deflate              := GetProcAddress(ZLib_LibHandle,'deflate');
-        deflateEnd           := GetProcAddress(ZLib_LibHandle,'deflateEnd');
+        deflate              := GetCheckProcAddress(ZLib_LibHandle,'deflate');
+        deflateEnd           := GetCheckProcAddress(ZLib_LibHandle,'deflateEnd');
 
-        inflate              := GetProcAddress(ZLib_LibHandle,'inflate');
-        inflateEnd           := GetProcAddress(ZLib_LibHandle,'inflateEnd');
+        inflate              := GetCheckProcAddress(ZLib_LibHandle,'inflate');
+        inflateEnd           := GetCheckProcAddress(ZLib_LibHandle,'inflateEnd');
 
-        deflateSetDictionary := GetProcAddress(ZLib_LibHandle,'deflateSetDictionary');
-        deflateGetDictionary := GetProcAddress(ZLib_LibHandle,'deflateGetDictionary');
-        deflateCopy          := GetProcAddress(ZLib_LibHandle,'deflateCopy');
-        deflateReset         := GetProcAddress(ZLib_LibHandle,'deflateReset');
-        deflateParams        := GetProcAddress(ZLib_LibHandle,'deflateParams');
-        deflateTune          := GetProcAddress(ZLib_LibHandle,'deflateTune');
-        deflateBound         := GetProcAddress(ZLib_LibHandle,'deflateBound');
-        deflatePending       := GetProcAddress(ZLib_LibHandle,'deflatePending');
-        deflatePrime         := GetProcAddress(ZLib_LibHandle,'deflatePrime');
-        deflateSetHeader     := GetProcAddress(ZLib_LibHandle,'deflateSetHeader');
+        deflateSetDictionary := GetCheckProcAddress(ZLib_LibHandle,'deflateSetDictionary');
+        deflateGetDictionary := GetCheckProcAddress(ZLib_LibHandle,'deflateGetDictionary');
+        deflateCopy          := GetCheckProcAddress(ZLib_LibHandle,'deflateCopy');
+        deflateReset         := GetCheckProcAddress(ZLib_LibHandle,'deflateReset');
+        deflateParams        := GetCheckProcAddress(ZLib_LibHandle,'deflateParams');
+        deflateTune          := GetCheckProcAddress(ZLib_LibHandle,'deflateTune');
+        deflateBound         := GetCheckProcAddress(ZLib_LibHandle,'deflateBound');
+        deflatePending       := GetCheckProcAddress(ZLib_LibHandle,'deflatePending');
+        deflatePrime         := GetCheckProcAddress(ZLib_LibHandle,'deflatePrime');
+        deflateSetHeader     := GetCheckProcAddress(ZLib_LibHandle,'deflateSetHeader');
 
-        inflateSetDictionary := GetProcAddress(ZLib_LibHandle,'inflateSetDictionary');
-        inflateGetDictionary := GetProcAddress(ZLib_LibHandle,'inflateGetDictionary');
-        inflateSync          := GetProcAddress(ZLib_LibHandle,'inflateSync');
-        inflateCopy          := GetProcAddress(ZLib_LibHandle,'inflateCopy');
-        inflateReset         := GetProcAddress(ZLib_LibHandle,'inflateReset');
-        inflateReset2        := GetProcAddress(ZLib_LibHandle,'inflateReset2');
-        inflatePrime         := GetProcAddress(ZLib_LibHandle,'inflatePrime');
-        inflateMark          := GetProcAddress(ZLib_LibHandle,'inflateMark');
-        inflateGetHeader     := GetProcAddress(ZLib_LibHandle,'inflateGetHeader');
+        inflateSetDictionary := GetCheckProcAddress(ZLib_LibHandle,'inflateSetDictionary');
+        inflateGetDictionary := GetCheckProcAddress(ZLib_LibHandle,'inflateGetDictionary');
+        inflateSync          := GetCheckProcAddress(ZLib_LibHandle,'inflateSync');
+        inflateCopy          := GetCheckProcAddress(ZLib_LibHandle,'inflateCopy');
+        inflateReset         := GetCheckProcAddress(ZLib_LibHandle,'inflateReset');
+        inflateReset2        := GetCheckProcAddress(ZLib_LibHandle,'inflateReset2');
+        inflatePrime         := GetCheckProcAddress(ZLib_LibHandle,'inflatePrime');
+        inflateMark          := GetCheckProcAddress(ZLib_LibHandle,'inflateMark');
+        inflateGetHeader     := GetCheckProcAddress(ZLib_LibHandle,'inflateGetHeader');
 
-        inflateBack          := GetProcAddress(ZLib_LibHandle,'inflateBack');
-        inflateBackEnd       := GetProcAddress(ZLib_LibHandle,'inflateBackEnd');
+        inflateBack          := GetCheckProcAddress(ZLib_LibHandle,'inflateBack');
+        inflateBackEnd       := GetCheckProcAddress(ZLib_LibHandle,'inflateBackEnd');
 
-        zlibCompileFlags     := GetProcAddress(ZLib_LibHandle,'zlibCompileFlags');
+        zlibCompileFlags     := GetCheckProcAddress(ZLib_LibHandle,'zlibCompileFlags');
 
-        compress             := GetProcAddress(ZLib_LibHandle,'compress');
-        compress2            := GetProcAddress(ZLib_LibHandle,'compress2');
-        compressBound        := GetProcAddress(ZLib_LibHandle,'compressBound');
-        uncompress           := GetProcAddress(ZLib_LibHandle,'uncompress');
-        uncompress2          := GetProcAddress(ZLib_LibHandle,'uncompress2');
+        compress             := GetCheckProcAddress(ZLib_LibHandle,'compress');
+        compress2            := GetCheckProcAddress(ZLib_LibHandle,'compress2');
+        compressBound        := GetCheckProcAddress(ZLib_LibHandle,'compressBound');
+        uncompress           := GetCheckProcAddress(ZLib_LibHandle,'uncompress');
+        uncompress2          := GetCheckProcAddress(ZLib_LibHandle,'uncompress2');
 
       {$IFDEF GZIP_Support}
-        gzopen               := GetProcAddress(ZLib_LibHandle,'gzopen');
-        gzdopen              := GetProcAddress(ZLib_LibHandle,'gzdopen');
-        gzbuffer             := GetProcAddress(ZLib_LibHandle,'gzbuffer');
-        gzsetparams          := GetProcAddress(ZLib_LibHandle,'gzsetparams');
-        gzread               := GetProcAddress(ZLib_LibHandle,'gzread');
-        gzfread              := GetProcAddress(ZLib_LibHandle,'gzfread');
-        gzwrite              := GetProcAddress(ZLib_LibHandle,'gzwrite');
-        gzfwrite             := GetProcAddress(ZLib_LibHandle,'gzfwrite');
-        gzprintf             := GetProcAddress(ZLib_LibHandle,'gzprintf');
-        gzputs               := GetProcAddress(ZLib_LibHandle,'gzputs');
-        gzgets               := GetProcAddress(ZLib_LibHandle,'gzgets');
-        gzputc               := GetProcAddress(ZLib_LibHandle,'gzputc');
-        gzgetc               := GetProcAddress(ZLib_LibHandle,'gzgetc');
-        gzungetc             := GetProcAddress(ZLib_LibHandle,'gzungetc');
-        gzflush              := GetProcAddress(ZLib_LibHandle,'gzflush');
-        gzseek               := GetProcAddress(ZLib_LibHandle,'gzseek');
-        gzrewind             := GetProcAddress(ZLib_LibHandle,'gzrewind');
-        gztell               := GetProcAddress(ZLib_LibHandle,'gztell');
-        gzoffset             := GetProcAddress(ZLib_LibHandle,'gzoffset');
-        gzeof                := GetProcAddress(ZLib_LibHandle,'gzeof');
-        gzdirect             := GetProcAddress(ZLib_LibHandle,'gzdirect');
-        gzclose              := GetProcAddress(ZLib_LibHandle,'gzclose');
-        gzclose_r            := GetProcAddress(ZLib_LibHandle,'gzclose_r');
-        gzclose_w            := GetProcAddress(ZLib_LibHandle,'gzclose_w');
-        gzerror              := GetProcAddress(ZLib_LibHandle,'gzerror');
-        gzclearerr           := GetProcAddress(ZLib_LibHandle,'gzclearerr');
+        gzopen               := GetCheckProcAddress(ZLib_LibHandle,'gzopen');
+        gzdopen              := GetCheckProcAddress(ZLib_LibHandle,'gzdopen');
+        gzbuffer             := GetCheckProcAddress(ZLib_LibHandle,'gzbuffer');
+        gzsetparams          := GetCheckProcAddress(ZLib_LibHandle,'gzsetparams');
+        gzread               := GetCheckProcAddress(ZLib_LibHandle,'gzread');
+        gzfread              := GetCheckProcAddress(ZLib_LibHandle,'gzfread');
+        gzwrite              := GetCheckProcAddress(ZLib_LibHandle,'gzwrite');
+        gzfwrite             := GetCheckProcAddress(ZLib_LibHandle,'gzfwrite');
+        gzprintf             := GetCheckProcAddress(ZLib_LibHandle,'gzprintf');
+        gzputs               := GetCheckProcAddress(ZLib_LibHandle,'gzputs');
+        gzgets               := GetCheckProcAddress(ZLib_LibHandle,'gzgets');
+        gzputc               := GetCheckProcAddress(ZLib_LibHandle,'gzputc');
+        gzgetc               := GetCheckProcAddress(ZLib_LibHandle,'gzgetc');
+        gzungetc             := GetCheckProcAddress(ZLib_LibHandle,'gzungetc');
+        gzflush              := GetCheckProcAddress(ZLib_LibHandle,'gzflush');
+        gzseek               := GetCheckProcAddress(ZLib_LibHandle,'gzseek');
+        gzrewind             := GetCheckProcAddress(ZLib_LibHandle,'gzrewind');
+        gztell               := GetCheckProcAddress(ZLib_LibHandle,'gztell');
+        gzoffset             := GetCheckProcAddress(ZLib_LibHandle,'gzoffset');
+        gzeof                := GetCheckProcAddress(ZLib_LibHandle,'gzeof');
+        gzdirect             := GetCheckProcAddress(ZLib_LibHandle,'gzdirect');
+        gzclose              := GetCheckProcAddress(ZLib_LibHandle,'gzclose');
+        gzclose_r            := GetCheckProcAddress(ZLib_LibHandle,'gzclose_r');
+        gzclose_w            := GetCheckProcAddress(ZLib_LibHandle,'gzclose_w');
+        gzerror              := GetCheckProcAddress(ZLib_LibHandle,'gzerror');
+        gzclearerr           := GetCheckProcAddress(ZLib_LibHandle,'gzclearerr');
       {$ENDIF GZIP_Support}
 
-        adler32              := GetProcAddress(ZLib_LibHandle,'adler32');
-        adler32_z            := GetProcAddress(ZLib_LibHandle,'adler32_z');
-        adler32_combine      := GetProcAddress(ZLib_LibHandle,'adler32_combine');
-        crc32                := GetProcAddress(ZLib_LibHandle,'crc32');
-        crc32_z              := GetProcAddress(ZLib_LibHandle,'crc32_z');
-        crc32_combine        := GetProcAddress(ZLib_LibHandle,'crc32_combine');
+        adler32              := GetCheckProcAddress(ZLib_LibHandle,'adler32');
+        adler32_z            := GetCheckProcAddress(ZLib_LibHandle,'adler32_z');
+        adler32_combine      := GetCheckProcAddress(ZLib_LibHandle,'adler32_combine');
+        crc32                := GetCheckProcAddress(ZLib_LibHandle,'crc32');
+        crc32_z              := GetCheckProcAddress(ZLib_LibHandle,'crc32_z');
+        crc32_combine        := GetCheckProcAddress(ZLib_LibHandle,'crc32_combine');
 
-        deflateInit_         := GetProcAddress(ZLib_LibHandle,'deflateInit_');
-        inflateInit_         := GetProcAddress(ZLib_LibHandle,'inflateInit_');
-        deflateInit2_        := GetProcAddress(ZLib_LibHandle,'deflateInit2_');
-        inflateInit2_        := GetProcAddress(ZLib_LibHandle,'inflateInit2_');
-        inflateBackInit_     := GetProcAddress(ZLib_LibHandle,'inflateBackInit_');
+        deflateInit_         := GetCheckProcAddress(ZLib_LibHandle,'deflateInit_');
+        inflateInit_         := GetCheckProcAddress(ZLib_LibHandle,'inflateInit_');
+        deflateInit2_        := GetCheckProcAddress(ZLib_LibHandle,'deflateInit2_');
+        inflateInit2_        := GetCheckProcAddress(ZLib_LibHandle,'inflateInit2_');
+        inflateBackInit_     := GetCheckProcAddress(ZLib_LibHandle,'inflateBackInit_');
 
       {$IFDEF GZIP_Support}
-        gzgetc_              := GetProcAddress(ZLib_LibHandle,'gzgetc_');
-        gzopen64             := GetProcAddress(ZLib_LibHandle,'gzopen64');
-        gzseek64             := GetProcAddress(ZLib_LibHandle,'gzseek64');
-        gztell64             := GetProcAddress(ZLib_LibHandle,'gztell64');
-        gzoffset64           := GetProcAddress(ZLib_LibHandle,'gzoffset64');
+        gzgetc_              := GetCheckProcAddress(ZLib_LibHandle,'gzgetc_');
+        gzopen64             := GetCheckProcAddress(ZLib_LibHandle,'gzopen64');
+        gzseek64             := GetCheckProcAddress(ZLib_LibHandle,'gzseek64');
+        gztell64             := GetCheckProcAddress(ZLib_LibHandle,'gztell64');
+        gzoffset64           := GetCheckProcAddress(ZLib_LibHandle,'gzoffset64');
       {$ENDIF GZIP_Support}
-        adler32_combine64    := GetProcAddress(ZLib_LibHandle,'adler32_combine64');
-        crc32_combine64      := GetProcAddress(ZLib_LibHandle,'crc32_combine64');
+        adler32_combine64    := GetCheckProcAddress(ZLib_LibHandle,'adler32_combine64');
+        crc32_combine64      := GetCheckProcAddress(ZLib_LibHandle,'crc32_combine64');
 
-        zError               := GetProcAddress(ZLib_LibHandle,'zError');
-        inflateSyncPoint     := GetProcAddress(ZLib_LibHandle,'inflateSyncPoint');
-        get_crc_table        := GetProcAddress(ZLib_LibHandle,'get_crc_table');
-        inflateUndermine     := GetProcAddress(ZLib_LibHandle,'inflateUndermine');
-        inflateValidate      := GetProcAddress(ZLib_LibHandle,'inflateValidate');
-        inflateCodesUsed     := GetProcAddress(ZLib_LibHandle,'inflateCodesUsed');
-        inflateResetKeep     := GetProcAddress(ZLib_LibHandle,'inflateResetKeep');
-        deflateResetKeep     := GetProcAddress(ZLib_LibHandle,'deflateResetKeep');
+        zError               := GetCheckProcAddress(ZLib_LibHandle,'zError');
+        inflateSyncPoint     := GetCheckProcAddress(ZLib_LibHandle,'inflateSyncPoint');
+        get_crc_table        := GetCheckProcAddress(ZLib_LibHandle,'get_crc_table');
+        inflateUndermine     := GetCheckProcAddress(ZLib_LibHandle,'inflateUndermine');
+        inflateValidate      := GetCheckProcAddress(ZLib_LibHandle,'inflateValidate');
+        inflateCodesUsed     := GetCheckProcAddress(ZLib_LibHandle,'inflateCodesUsed');
+        inflateResetKeep     := GetCheckProcAddress(ZLib_LibHandle,'inflateResetKeep');
+        deflateResetKeep     := GetCheckProcAddress(ZLib_LibHandle,'deflateResetKeep');
       {$IFDEF GZIP_Support}
-        gzopen_w             := GetProcAddress(ZLib_LibHandle,'gzopen_w');
+        gzopen_w             := GetCheckProcAddress(ZLib_LibHandle,'gzopen_w');
       {$ENDIF GZIP_Support}
 
       {$IFDEF CheckCompatibility}
