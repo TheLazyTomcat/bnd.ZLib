@@ -17,7 +17,7 @@
   This binding is distributed with all necessary binaries (object files, DLLs)
   precompiled. For details please refer to file bin_readme.txt.
 
-  ©František Milt 2017-08-07
+  ©František Milt 2018-02-07
 
   Version 1.0.1
 
