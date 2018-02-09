@@ -323,9 +323,9 @@ If ZLib_LibHandle = 0 then
         CheckCompatibility(zlibCompileFlags);
       {$ENDIF}
         Result := True;
-			end
+      end
     else Result := False;
-	end
+  end
 else Result := True;
 end;
 

@@ -268,7 +268,7 @@ const
   Z_DEFLATED = 8;
 (* The deflate compression method (the only one supported in this version) *)
 
-	Z_NULL = nil;   (* for initializing zalloc, zfree, opaque *)
+  Z_NULL = nil;   (* for initializing zalloc, zfree, opaque *)
 
 type
   in_func = Function(Ptr: Pointer; Buff: PPByte): unsigned; cdecl;
