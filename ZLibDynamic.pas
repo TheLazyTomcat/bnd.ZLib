@@ -160,7 +160,7 @@ Function inflateBackInit(strm: z_streamp; windowBits: int; window: PByte): int;{
 
 //== Library initialization ====================================================
 
-Function ZLib_Initialize(const {%H-}LibPath: String = LibName): Boolean;
+Function ZLib_Initialize(const LibPath: String = LibName): Boolean;
 procedure ZLib_Finalize;
 
 implementation
