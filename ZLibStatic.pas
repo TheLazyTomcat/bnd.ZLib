@@ -1004,7 +1004,7 @@ Function zlibCompileFlags: uLong; cdecl; external;
    you need special options.
 *)
 
-Function compress(dest: PByte; destLen: puLong; source: PByte; sourceLen: PuLong): int; cdecl; external;
+Function compress(dest: PByte; destLen: puLong; source: PByte; sourceLen: uLong): int; cdecl; external;
 (*
      Compresses the source buffer into the destination buffer.  sourceLen is
    the byte length of the source buffer.  Upon entry, destLen is the total size
@@ -1561,15 +1561,22 @@ Function inflateValidate(strm: z_streamp; check: int): int; cdecl; external;
 Function inflateCodesUsed(strm: z_streamp): UInt32; cdecl; external;
 Function inflateResetKeep(strm: z_streamp): int; cdecl; external;
 Function deflateResetKeep(strm: z_streamp): int; cdecl; external;
-{$IFDEF GZIP_Support}
+{$IF Defined(GZIP_Support) and Defined(Windows)}
 Function gzopen_w(path: PWideChar; mode: PAnsiChar): gzFile; cdecl; external;
-{$ENDIF GZIP_Support}
+{$IFEND}
 
 implementation
 
+{$IFDEF Linux}
+  {$LINKLIB libc}
+  {$IFDEF x86}
+    {$LINKLIB gcc_s}
+  {$ENDIF}
+{$ENDIF}
+
 {$IFDEF GZIP_Support}
 uses
-  Windows, SysUtils;
+  {$IFDEF Windows}Windows,{$ENDIF} SysUtils;
 {$ENDIF GZIP_Support}
 
 //== Macro implementation ======================================================
@@ -1609,6 +1616,8 @@ end;
 
 //== Object files linking ======================================================
 
+{$IFDEF Windows}
+// windows binaries
 {$IFDEF x64}
   {$IFDEF GZIP_Support}
     {$LINK 'zlib_win64\gzclose.o'}
@@ -1666,8 +1675,50 @@ end;
     {$LINK 'zlib_win32\zutil.obj'}
 {$ENDIF}
 {$ENDIF}
+{$ELSE}
+// linux binaries
+{$IFDEF x64}
+  {$IFDEF GZIP_Support}
+    {$LINK 'zlib_lin64\gzclose.o'}
+    {$LINK 'zlib_lin64\gzwrite.o'}
+    {$LINK 'zlib_lin64\gzread.o'}
+    {$LINK 'zlib_lin64\gzlib.o'}
+  {$ENDIF GZIP_Support}
+    {$LINK 'zlib_lin64\uncompr.o'}
+    {$LINK 'zlib_lin64\compress.o'}
+    {$LINK 'zlib_lin64\deflate.o'}
+    {$LINK 'zlib_lin64\inflate.o'}
+    {$LINK 'zlib_lin64\infback.o'}
+    {$LINK 'zlib_lin64\inftrees.o'}
+    {$LINK 'zlib_lin64\inffast.o'}
+    {$LINK 'zlib_lin64\trees.o'}
+    {$LINK 'zlib_lin64\crc32.o'}
+    {$LINK 'zlib_lin64\adler32.o'}
+    {$LINK 'zlib_lin64\zutil.o'}
+{$ELSE}
+  {$IFDEF GZIP_Support}
+    {$LINK 'zlib_lin32\gzclose.o'}
+    {$LINK 'zlib_lin32\gzwrite.o'}
+    {$LINK 'zlib_lin32\gzread.o'}
+    {$LINK 'zlib_lin32\gzlib.o'}
+  {$ENDIF GZIP_Support}
+    {$LINK 'zlib_lin32\uncompr.o'}
+    {$LINK 'zlib_lin32\compress.o'}
+    {$LINK 'zlib_lin32\deflate.o'}
+    {$LINK 'zlib_lin32\inflate.o'}
+    {$LINK 'zlib_lin32\infback.o'}
+    {$LINK 'zlib_lin32\inftrees.o'}
+    {$LINK 'zlib_lin32\inffast.o'}
+    {$LINK 'zlib_lin32\trees.o'}
+    {$LINK 'zlib_lin32\crc32.o'}
+    {$LINK 'zlib_lin32\adler32.o'}
+    {$LINK 'zlib_lin32\zutil.o'}
+{$ENDIF}
+{$ENDIF}
 
 //== Public functions required by linked object files ==========================
+
+{$IFDEF Windows}
 
 Function memcpy(Dst,Src: Pointer; Count: size_t): Pointer; cdecl;{$IFDEF FPC} public;{$ENDIF}
 begin
@@ -1697,6 +1748,8 @@ begin
 FreeMem(Ptr);
 end;
 
+{$ENDIF Windows}
+
 //------------------------------------------------------------------------------
 
 {$IF not Defined(FPC) and not Defined(x64)} // 32bit Delphi
@@ -1710,7 +1763,7 @@ end;
 
 //== Functions redirected to msvcrt.dll ========================================
 
-{$IFDEF GZIP_Support}
+{$IF Defined(GZIP_Support) and Defined(Windows)}
 
 var
   CRT_LibHandle:          THandle = 0;
@@ -1933,7 +1986,7 @@ asm
 {$ENDIF}
 end;
 
-{$ENDIF GZIP_Support}
+{$IFEND}
 
 //==============================================================================
 
@@ -1941,15 +1994,14 @@ initialization
 {$IFDEF CheckCompatibility)}
   CheckCompatibility(zlibCompileFlags);
 {$ENDIF}
-{$IFDEF GZIP_Support}
+{$IF Defined(GZIP_Support) and Defined(Windows)}
   CRT_Initialize;
-{$ENDIF}
+{$IFEND}
 
 finalization
-{$IFDEF GZIP_Support}
+{$IF Defined(GZIP_Support) and Defined(Windows)}
   CRT_Finalize;
-{$ENDIF}
-
+{$IFEND}
 
 end.
 

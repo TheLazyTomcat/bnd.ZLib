@@ -80,7 +80,7 @@ var
 
   zlibCompileFlags:     Function: uLong; cdecl;
 
-  compress:             Function(dest: PByte; destLen: puLong; source: PByte; sourceLen: PuLong): int; cdecl;
+  compress:             Function(dest: PByte; destLen: puLong; source: PByte; sourceLen: uLong): int; cdecl;
   compress2:            Function(dest: PByte; destLen: puLong; source: PByte; sourceLen: uLong; level: int): int; cdecl;
   compressBound:        Function(sourceLen: uLong): uLong; cdecl;
   uncompress:           Function(dest: PByte; destLen: puLong; source: PByte; sourceLen: uLong): int; cdecl;
@@ -146,9 +146,9 @@ var
   inflateCodesUsed:     Function(strm: z_streamp): UInt32; cdecl;
   inflateResetKeep:     Function(strm: z_streamp): int; cdecl;
   deflateResetKeep:     Function(strm: z_streamp): int; cdecl;
-{$IFDEF GZIP_Support}
+{$IF Defined(GZIP_Support) and Defined(Windows)}
   gzopen_w:             Function(path: PWideChar; mode: PAnsiChar): gzFile; cdecl;
-{$ENDIF GZIP_Support}
+{$IFEND}
 
 //== Macro functions ===========================================================
 
@@ -160,13 +160,14 @@ Function inflateBackInit(strm: z_streamp; windowBits: int; window: PByte): int;{
 
 //== Library initialization ====================================================
 
+Function ZLib_Initialized: Boolean;
 Function ZLib_Initialize(const LibPath: String = LibName): Boolean;
 procedure ZLib_Finalize;
 
 implementation
 
 uses
-  Windows, StrRect;
+  {$IFDEF Windows}Windows, StrRect{$ELSE}dl{$ENDIF};
 
 //== Macro implementation ======================================================
 
@@ -206,14 +207,29 @@ end;
 //== Library initialization implementation =====================================
 
 var
-  ZLib_LibHandle: THandle = 0;
+  ZLib_LibHandle: TModuleHandle = {$IFDEF Windows}0{$ELSE}nil{$ENDIF};
 
-Function ZLib_Initialize(const LibPath: String): Boolean;
+Function ZLib_Initialized: Boolean;
 begin
-If ZLib_LibHandle = 0 then
+{$IFDEF Windows}
+Result := ZLib_LibHandle <> 0;
+{$ELSE}
+Result :=  Assigned(ZLib_LibHandle);
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+Function ZLib_Initialize(const LibPath: String = LibName): Boolean;
+begin
+If not ZLib_Initialized then
   begin
+  {$IFDEF Windows}
     ZLib_LibHandle := LoadLibraryEx(PChar(StrToWin(LibPath)),0,0);
-    If ZLib_LibHandle <> 0 then
+  {$ELSE}
+    ZLib_LibHandle := dlopen(PChar(LibPath),RTLD_NOW);
+  {$ENDIF}
+    If ZLib_Initialized then
       begin
         zlibVersion          := GetCheckProcAddress(ZLib_LibHandle,'zlibVersion');
 
@@ -315,9 +331,9 @@ If ZLib_LibHandle = 0 then
         inflateCodesUsed     := GetCheckProcAddress(ZLib_LibHandle,'inflateCodesUsed');
         inflateResetKeep     := GetCheckProcAddress(ZLib_LibHandle,'inflateResetKeep');
         deflateResetKeep     := GetCheckProcAddress(ZLib_LibHandle,'deflateResetKeep');
-      {$IFDEF GZIP_Support}
+      {$IF Defined(GZIP_Support) and Defined(Windows)}
         gzopen_w             := GetCheckProcAddress(ZLib_LibHandle,'gzopen_w');
-      {$ENDIF GZIP_Support}
+      {$IFEND}
 
       {$IFDEF CheckCompatibility}
         CheckCompatibility(zlibCompileFlags);
@@ -333,10 +349,15 @@ end;
 
 procedure ZLib_Finalize;
 begin
-If ZLib_LibHandle <> 0 then
+If ZLib_Initialized then
   begin
+  {$IFDEF Windows}
     FreeLibrary(ZLib_LibHandle);
     ZLib_LibHandle := 0;
+  {$ELSE}
+    dlclose(ZLib_LibHandle);
+    ZLib_LibHandle := nil;
+  {$ENDIF}
   end;
 end;
 

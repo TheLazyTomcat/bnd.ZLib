@@ -6,7 +6,11 @@
   {$MESSAGE FATAL 'Unsupported CPU.'}
 {$IFEND}
 
-{$IF not(Defined(WINDOWS) or Defined(MSWINDOWS))}
+{$IF Defined(WINDOWS) or Defined(MSWINDOWS)}
+  {$DEFINE Windows}
+{$ELSEIF Defined(LINUX)}
+  {$DEFINE Linux}
+{$ELSE}
   {$MESSAGE FATAL 'Unsupported operating system.'}
 {$IFEND}
 

@@ -43,17 +43,27 @@ uses
 ===============================================================================}
 
 const
+{$IFDEF Windows}
   LibName = 'zlib1.dll';
+{$ELSE}
+  LibName = 'libz.so.1.2.11';
+{$ENDIF}
 
 type
   int      = Int32;         pint      = ^int;
-  off_t    = Int32;
   off64_t  = Int64;
   size_t   = PtrUInt;
   uInt     = UInt32;        puInt     = ^uInt;
-  uLong    = UInt32;        puLong    = ^uLong;
-  unsigned = UInt32;        punsigned = ^unsigned;
+{$IF Defined(Linux) and Defined(x64)}
+  off_t    = Int64;
+  long     = Int64;
+  uLong    = UInt64;        puLong    = ^uLong;
+{$ELSE}
+  off_t    = Int32;
   long     = Int32;
+  uLong    = UInt32;        puLong    = ^uLong;
+{$IFEND}
+  unsigned = UInt32;        punsigned = ^unsigned;
   PPByte   = ^PByte;
 
 {===============================================================================
@@ -286,26 +296,34 @@ type
     Auxiliary functions
 ===============================================================================}
 
+type
+  TModuleHandle = {$IFDEF Windows}THandle{$ELSE}Pointer{$ENDIF};
+
 procedure CheckCompatibility(Flags: uLong);
 
-Function GetCheckProcAddress(Module: THandle; ProcName: String): Pointer;
+Function GetCheckProcAddress(Module: TModuleHandle; ProcName: String): Pointer;
 
 implementation
 
 uses
-  Windows, SysUtils;
+  {$IFDEF Windows}Windows{$ELSE}dl{$ENDIF}, SysUtils;
 
 procedure CheckCompatibility(Flags: uLong);
 begin
 // check sizes of integer types
 Assert((Flags and 3) = 1,'uInt is not 32bit in size');
+{$IF Defined(Linux) and Defined(x64)}
+Assert(((Flags shr 2) and 3) = 2,'uLong is not 64bit in size');
+Assert(((Flags shr 6) and 3) = 2,'z_off_t is not 64bit in size');
+{$ELSE}
 Assert(((Flags shr 2) and 3) = 1,'uLong is not 32bit in size');
+Assert(((Flags shr 6) and 3) = 1,'z_off_t is not 32bit in size');
+{$IFEND}
 {$IFDEF x64}
 Assert(((Flags shr 4) and 3) = 2,'voidpf is not 64bit in size');
 {$ELSE}
 Assert(((Flags shr 4) and 3) = 1,'voidpf is not 32bit in size');
 {$ENDIF}
-Assert(((Flags shr 6) and 3) = 1,'z_off_t is not 32bit in size');
 // check whether calling convention is *not* STDCALL (ie. it is CDECL))
 Assert(((Flags shr 10) and 1) = 0,'incomatible calling convention');
 // check if all funcionality is available
@@ -315,9 +333,13 @@ end;
 
 //------------------------------------------------------------------------------
 
-Function GetCheckProcAddress(Module: THandle; ProcName: String): Pointer;
+Function GetCheckProcAddress(Module: TModuleHandle; ProcName: String): Pointer;
 begin
+{$IFDEF Windows}
 Result := GetProcAddress(Module,PChar(ProcName));
+{$ELSE}
+Result := dlsym(Module,PChar(ProcName));
+{$ENDIF}
 If not Assigned(Result) then
   raise Exception.CreateFmt('GetCheckProcAddress: Address of function "%s" could not be obtained',[ProcName]);
 end;
