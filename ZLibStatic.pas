@@ -1808,7 +1808,7 @@ If CRT_LibHandle = 0 then
         CRT_libfunc_write     := GetCheckProcAddress(CRT_LibHandle,'_write');
         CRT_libfunc_snprintf  := GetCheckProcAddress(CRT_LibHandle,'_snprintf');
       end
-    else raise Exception.Create('ZLib/Initialize: Unable to load msvcrt.dll');
+    else raise EZLibException.Create('ZLib/Initialize: Unable to load msvcrt.dll');
   end;
 end;
 

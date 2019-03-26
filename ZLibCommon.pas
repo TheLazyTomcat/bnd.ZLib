@@ -40,6 +40,7 @@ unit ZLibCommon;
 interface
 
 uses
+  SysUtils,
   AuxTypes;
 
 {===============================================================================
@@ -297,10 +298,12 @@ type
   gzFile = ^gzFile_s;   (* semi-opaque gzip file descriptor *)
 
 {===============================================================================
-    Auxiliary functions
+    Auxiliary types and functions
 ===============================================================================}
 
 type
+  EZLibException = class(Exception);
+
   TModuleHandle = {$IFDEF Windows}THandle{$ELSE}Pointer{$ENDIF};
 
 procedure CheckCompatibility(Flags: uLong);
@@ -310,7 +313,7 @@ Function GetCheckProcAddress(Module: TModuleHandle; ProcName: String): Pointer;
 implementation
 
 uses
-  {$IFDEF Windows}Windows{$ELSE}dl{$ENDIF}, SysUtils;
+  {$IFDEF Windows}Windows{$ELSE}dl{$ENDIF};
 
 procedure CheckCompatibility(Flags: uLong);
 begin
@@ -345,7 +348,7 @@ Result := GetProcAddress(Module,PChar(ProcName));
 Result := dlsym(Module,PChar(ProcName));
 {$ENDIF}
 If not Assigned(Result) then
-  raise Exception.CreateFmt('GetCheckProcAddress: Address of function "%s" could not be obtained',[ProcName]);
+  raise EZLibException.CreateFmt('GetCheckProcAddress: Address of function "%s" could not be obtained',[ProcName]);
 end;
 
 end.
