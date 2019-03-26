@@ -17,16 +17,20 @@
   This binding is distributed with all necessary binaries (object files, DLLs)
   precompiled. For details please refer to file bin_readme.txt.
 
-  ©František Milt 2018-02-07
+  ©František Milt 2019-03-26
 
-  Version 1.0.1
+  Version 1.1
 
   Dependencies:
     AuxTypes  - github.com/ncs-sniper/Lib.AuxTypes
   * StrRect   - github.com/ncs-sniper/Lib.StrRect
 
   StrRect is required only for dynamically linked part of the binding (unit
-  ZLibDynamic).
+  ZLibDynamic) and only when compiler for Windows OS.
+
+  Support
+    If you find this code useful, please consider supporting the author by
+    making a small donation using following link: https://www.paypal.me/FMilt
 
 ===============================================================================}
 unit ZLibDynamic;
