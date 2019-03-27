@@ -20,6 +20,15 @@
   ©František Milt 2019-03-26
 
   Version 1.1
+  
+  Contacts:
+    František Milt: frantisek.milt@gmail.com
+
+  Support:
+    If you find this code useful, please consider supporting the author by
+    making a small donation using following link(s):
+
+      https://www.paypal.me/FMilt
 
   Dependencies:
     AuxTypes  - github.com/ncs-sniper/Lib.AuxTypes
@@ -27,10 +36,6 @@
 
   StrRect is required only for dynamically linked part of the binding (unit
   ZLibDynamic) and only when compiler for Windows OS.
-
-  Support
-    If you find this code useful, please consider supporting the author by
-    making a small donation using following link: https://www.paypal.me/FMilt
 
 ===============================================================================}
 unit ZLibDynamic;
