@@ -7,35 +7,43 @@
 -------------------------------------------------------------------------------}
 {===============================================================================
 
-  zlib bindings (expected zlib version: 1.2.11)
+  zlib bindings - common types, constants and functions
 
-  Common types, constants and functions
+    These units provides plain (no wrappers or helpers) bindings for zlib
+    library. Most comments were copied directly from zlib.h header without
+    any change.
 
-  These units provides plain (no wrappers or helpers) bindings for zlib library.
-  Most comments were copied directly from zlib.h header without any change.
+    This binding is distributed with all necessary binaries (object files,
+    DLLs) precompiled. For details please refer to file bin_readme.txt.
 
-  This binding is distributed with all necessary binaries (object files, DLLs)
-  precompiled. For details please refer to file bin_readme.txt.
+  Version 1.1 (2019-03-26)
 
-  ©František Milt 2019-03-26
+  Build against zlib version 1.2.11
 
-  Version 1.1
+  Last change 2019-10-05
+
+  ©2017-2019 František Milt
   
   Contacts:
     František Milt: frantisek.milt@gmail.com
 
   Support:
-    If you find this code useful, please consider supporting the author by
-    making a small donation using following link(s):
+    If you find this code useful, please consider supporting its author(s) by
+    making a small donation using the following link(s):
 
       https://www.paypal.me/FMilt
 
-  Dependencies:
-    AuxTypes  - github.com/ncs-sniper/Lib.AuxTypes
-  * StrRect   - github.com/ncs-sniper/Lib.StrRect
+  Changelog:
+    For detailed changelog and history please refer to this git repository:
 
-  StrRect is required only for dynamically linked part of the binding (unit
-  ZLibDynamic) and only when compiler for Windows OS.
+      github.com/TheLazyTomcat/Bnd.ZLib
+
+  Dependencies:
+    AuxTypes  - github.com/TheLazyTomcat/Lib.AuxTypes
+  * StrRect   - github.com/TheLazyTomcat/Lib.StrRect
+
+    StrRect is required only for dynamically linked part of the binding (unit
+    ZLibDynamic) and only when compiler for Windows OS.
 
 ===============================================================================}
 unit ZLibCommon;
