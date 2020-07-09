@@ -20,7 +20,7 @@
 
   Build against zlib version 1.2.11
 
-  Last change 2019-10-05
+  Last change 2020-07-09
 
   ©2017-2019 František Milt
   
@@ -1586,9 +1586,9 @@ implementation
 
 {$IFDEF Linux}
   {$LINKLIB libc}
-  {$IFDEF x86}
+  {$IF Defined(FPC) and Defined(x86) and (FPC_FULLVERSION < 30000)}
     {$LINKLIB gcc_s}
-  {$ENDIF}
+  {$IFEND}
 {$ENDIF}
 
 {$IFDEF GZIP_Support}
@@ -1777,6 +1777,15 @@ Result := a mod b;
 end;
 
 {$IFEND}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF Linux}{$IF Defined(FPC) and Defined(x86) and (FPC_FULLVERSION >= 30000)}
+Function __moddi3(a,b: Int64): Int64; cdecl; public;
+begin
+Result := a mod b;
+end;
+{$IFEND}{$ENDIF}
 
 //== Functions redirected to msvcrt.dll ========================================
 
