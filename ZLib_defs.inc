@@ -26,6 +26,7 @@
     {$UNDEF CanInline}
   {$IFEND}
 {$ENDIF}
+{$H+}
 
 {
   GZIP_Support

@@ -20,9 +20,9 @@
 
   Build against zlib version 1.2.11
 
-  Last change 2020-07-09
+  Last change 2020-08-02
 
-  ©2017-2019 František Milt
+  ©2017-2020 František Milt
   
   Contacts:
     František Milt: frantisek.milt@gmail.com
