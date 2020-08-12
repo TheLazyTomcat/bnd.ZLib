@@ -16,11 +16,11 @@
     This binding is distributed with all necessary binaries (object files,
     DLLs) precompiled. For details please refer to file bin_readme.txt.
 
-  Version 1.1 (2019-03-26)
+  Version 1.1.1 (2020-08-12)
 
   Build against zlib version 1.2.11
 
-  Last change 2020-08-02
+  Last change 2020-08-12
 
   ©2017-2020 František Milt
   
@@ -39,11 +39,9 @@
       github.com/TheLazyTomcat/Bnd.ZLib
 
   Dependencies:
-    AuxTypes  - github.com/TheLazyTomcat/Lib.AuxTypes
-  * StrRect   - github.com/TheLazyTomcat/Lib.StrRect
-
-    StrRect is required only for dynamically linked part of the binding (unit
-    ZLibDynamic) and only when compiler for Windows OS.
+    AuxTypes    - github.com/TheLazyTomcat/Lib.AuxTypes
+    StrRect     - github.com/TheLazyTomcat/Lib.StrRect
+    DynLibUtils - github.com/TheLazyTomcat/Lib.DynLibUtils
 
 ===============================================================================}
 unit ZLibCommon;
@@ -317,16 +315,9 @@ type
 type
   EZLibException = class(Exception);
 
-  TModuleHandle = {$IFDEF Windows}THandle{$ELSE}Pointer{$ENDIF};
-
 procedure CheckCompatibility(Flags: uLong);
 
-Function GetCheckProcAddress(Module: TModuleHandle; ProcName: String): Pointer;
-
 implementation
-
-uses
-  {$IFDEF Windows}Windows{$ELSE}dl{$ENDIF};
 
 procedure CheckCompatibility(Flags: uLong);
 begin
@@ -349,19 +340,6 @@ Assert(((Flags shr 10) and 1) = 0,'incomatible calling convention');
 // check if all funcionality is available
 Assert(((Flags shr 16) and 1) = 0,'gz* functions cannot compress');
 Assert(((Flags shr 17) and 1) = 0,'unable to write gzip stream');
-end;
-
-//------------------------------------------------------------------------------
-
-Function GetCheckProcAddress(Module: TModuleHandle; ProcName: String): Pointer;
-begin
-{$IFDEF Windows}
-Result := GetProcAddress(Module,PChar(ProcName));
-{$ELSE}
-Result := dlsym(Module,PChar(ProcName));
-{$ENDIF}
-If not Assigned(Result) then
-  raise EZLibException.CreateFmt('GetCheckProcAddress: Address of function "%s" could not be obtained',[ProcName]);
 end;
 
 end.

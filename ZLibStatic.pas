@@ -16,11 +16,11 @@
     This binding is distributed with all necessary binaries (object files,
     DLLs) precompiled. For details please refer to file bin_readme.txt.
 
-  Version 1.1 (2019-03-26)
+  Version 1.1.1 (2020-08-12)
 
   Build against zlib version 1.2.11
 
-  Last change 2020-08-02
+  Last change 2020-08-12
 
   ©2017-2020 František Milt
   
@@ -39,11 +39,9 @@
       github.com/TheLazyTomcat/Bnd.ZLib
 
   Dependencies:
-    AuxTypes  - github.com/TheLazyTomcat/Lib.AuxTypes
-  * StrRect   - github.com/TheLazyTomcat/Lib.StrRect
-
-    StrRect is required only for dynamically linked part of the binding (unit
-    ZLibDynamic) and only when compiler for Windows OS.
+    AuxTypes    - github.com/TheLazyTomcat/Lib.AuxTypes
+    StrRect     - github.com/TheLazyTomcat/Lib.StrRect
+    DynLibUtils - github.com/TheLazyTomcat/Lib.DynLibUtils
 
 ===============================================================================}
 unit ZLibStatic;
@@ -1591,10 +1589,10 @@ implementation
   {$IFEND}
 {$ENDIF}
 
-{$IFDEF GZIP_Support}
+{$IF Defined(GZIP_Support) and Defined(Windows)}
 uses
-  {$IFDEF Windows}Windows,{$ENDIF} SysUtils;
-{$ENDIF GZIP_Support}
+  DynLibUtils;
+{$IFEND}
 
 //== Macro implementation ======================================================
 
@@ -1792,7 +1790,7 @@ end;
 {$IF Defined(GZIP_Support) and Defined(Windows)}
 
 var
-  CRT_LibHandle:          THandle = 0;
+  CRT_LibContext:         TDLULibraryContext;
   CRT_libfunc_strlen:     Pointer;
   CRT_libfunc_open:       Pointer;
   CRT_libfunc_lseek:      Pointer;
@@ -1811,38 +1809,29 @@ var
 
 procedure CRT_Initialize;
 begin
-If CRT_LibHandle = 0 then
-  begin
-    CRT_LibHandle := LoadLibraryEx(PChar('msvcrt.dll'),0,0);
-    If CRT_LibHandle <> 0 then
-      begin
-        CRT_libfunc_strlen    := GetCheckProcAddress(CRT_LibHandle,'strlen');
-        CRT_libfunc_open      := GetCheckProcAddress(CRT_LibHandle,'_open');
-        CRT_libfunc_lseek     := GetCheckProcAddress(CRT_LibHandle,'_lseek');
-        CRT_libfunc_wcstombs  := GetCheckProcAddress(CRT_LibHandle,'wcstombs');
-        CRT_libfunc_wopen     := GetCheckProcAddress(CRT_LibHandle,'_wopen');
-        CRT_libfunc_vsnprintf := GetCheckProcAddress(CRT_LibHandle,'_vsnprintf');
-        CRT_libfunc_close     := GetCheckProcAddress(CRT_LibHandle,'_close');
-        CRT_libfunc_memchr    := GetCheckProcAddress(CRT_LibHandle,'memchr');
-        CRT_libfunc_read      := GetCheckProcAddress(CRT_LibHandle,'_read');
-        CRT_libfunc_strerror  := GetCheckProcAddress(CRT_LibHandle,'strerror');
-        CRT_libfunc_errno     := GetCheckProcAddress(CRT_LibHandle,'_errno');
-        CRT_libfunc_write     := GetCheckProcAddress(CRT_LibHandle,'_write');
-        CRT_libfunc_snprintf  := GetCheckProcAddress(CRT_LibHandle,'_snprintf');
-      end
-    else raise EZLibException.Create('ZLib/Initialize: Unable to load msvcrt.dll');
-  end;
+If OpenLibraryAndResolveSymbols('msvcrt.dll',CRT_LibContext,[
+  Symbol(@CRT_libfunc_strlen   ,'strlen'),
+  Symbol(@CRT_libfunc_open     ,'_open'),
+  Symbol(@CRT_libfunc_lseek    ,'_lseek'),
+  Symbol(@CRT_libfunc_wcstombs ,'wcstombs'),
+  Symbol(@CRT_libfunc_wopen    ,'_wopen'),
+  Symbol(@CRT_libfunc_vsnprintf,'_vsnprintf'),
+  Symbol(@CRT_libfunc_close    ,'_close'),
+  Symbol(@CRT_libfunc_memchr   ,'memchr'),
+  Symbol(@CRT_libfunc_read     ,'_read'),
+  Symbol(@CRT_libfunc_strerror ,'strerror'),
+  Symbol(@CRT_libfunc_errno    ,'_errno'),
+  Symbol(@CRT_libfunc_write    ,'_write'),
+  Symbol(@CRT_libfunc_snprintf ,'_snprintf')
+],True) <> 13 then
+  raise EZLibException.Create('Failed to initialize CRT.');
 end;
 
 //------------------------------------------------------------------------------
 
 procedure CRT_Finalize;
 begin
-If CRT_LibHandle <> 0 then
-  begin
-    FreeLibrary(CRT_LibHandle);
-    CRT_LibHandle := 0;
-  end;
+CloseLibrary(CRT_LibContext);
 end;
 
 //==============================================================================
@@ -2021,6 +2010,7 @@ initialization
   CheckCompatibility(zlibCompileFlags);
 {$ENDIF}
 {$IF Defined(GZIP_Support) and Defined(Windows)}
+  CRT_LibContext := DefaultLibraryContext;
   CRT_Initialize;
 {$IFEND}
 

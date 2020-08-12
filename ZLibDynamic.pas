@@ -16,11 +16,11 @@
     This binding is distributed with all necessary binaries (object files,
     DLLs) precompiled. For details please refer to file bin_readme.txt.
 
-  Version 1.1 (2019-03-26)
+  Version 1.1.1 (2020-08-12)
 
   Build against zlib version 1.2.11
 
-  Last change 2020-08-02
+  Last change 2020-08-12
 
   ©2017-2020 František Milt
   
@@ -39,11 +39,9 @@
       github.com/TheLazyTomcat/Bnd.ZLib
 
   Dependencies:
-    AuxTypes  - github.com/TheLazyTomcat/Lib.AuxTypes
-  * StrRect   - github.com/TheLazyTomcat/Lib.StrRect
-
-    StrRect is required only for dynamically linked part of the binding (unit
-    ZLibDynamic) and only when compiler for Windows OS.
+    AuxTypes    - github.com/TheLazyTomcat/Lib.AuxTypes
+    StrRect     - github.com/TheLazyTomcat/Lib.StrRect
+    DynLibUtils - github.com/TheLazyTomcat/Lib.DynLibUtils
 
 ===============================================================================}
 unit ZLibDynamic;
@@ -184,7 +182,7 @@ procedure ZLib_Finalize;
 implementation
 
 uses
-  {$IFDEF Windows}Windows, StrRect{$ELSE}dl{$ENDIF};
+  DynLibUtils;
 
 //== Macro implementation ======================================================
 
@@ -224,159 +222,138 @@ end;
 //== Library initialization implementation =====================================
 
 var
-  ZLib_LibHandle: TModuleHandle = {$IFDEF Windows}0{$ELSE}nil{$ENDIF};
+  ZLib_LibContext:  TDLULibraryContext;
+
+//------------------------------------------------------------------------------
 
 Function ZLib_Initialized: Boolean;
 begin
-{$IFDEF Windows}
-Result := ZLib_LibHandle <> 0;
-{$ELSE}
-Result :=  Assigned(ZLib_LibHandle);
-{$ENDIF}
+Result := CheckLibrary(ZLib_LibContext);
 end;
 
 //------------------------------------------------------------------------------
 
 Function ZLib_Initialize(const LibPath: String = LibName): Boolean;
 begin
-If not ZLib_Initialized then
-  begin
-  {$IFDEF Windows}
-    ZLib_LibHandle := LoadLibraryEx(PChar(StrToWin(LibPath)),0,0);
-  {$ELSE}
-    ZLib_LibHandle := dlopen(PChar(LibPath),RTLD_NOW);
-  {$ENDIF}
-    If ZLib_Initialized then
-      begin
-        zlibVersion          := GetCheckProcAddress(ZLib_LibHandle,'zlibVersion');
-
-        deflate              := GetCheckProcAddress(ZLib_LibHandle,'deflate');
-        deflateEnd           := GetCheckProcAddress(ZLib_LibHandle,'deflateEnd');
-
-        inflate              := GetCheckProcAddress(ZLib_LibHandle,'inflate');
-        inflateEnd           := GetCheckProcAddress(ZLib_LibHandle,'inflateEnd');
-
-        deflateSetDictionary := GetCheckProcAddress(ZLib_LibHandle,'deflateSetDictionary');
-        deflateGetDictionary := GetCheckProcAddress(ZLib_LibHandle,'deflateGetDictionary');
-        deflateCopy          := GetCheckProcAddress(ZLib_LibHandle,'deflateCopy');
-        deflateReset         := GetCheckProcAddress(ZLib_LibHandle,'deflateReset');
-        deflateParams        := GetCheckProcAddress(ZLib_LibHandle,'deflateParams');
-        deflateTune          := GetCheckProcAddress(ZLib_LibHandle,'deflateTune');
-        deflateBound         := GetCheckProcAddress(ZLib_LibHandle,'deflateBound');
-        deflatePending       := GetCheckProcAddress(ZLib_LibHandle,'deflatePending');
-        deflatePrime         := GetCheckProcAddress(ZLib_LibHandle,'deflatePrime');
-        deflateSetHeader     := GetCheckProcAddress(ZLib_LibHandle,'deflateSetHeader');
-
-        inflateSetDictionary := GetCheckProcAddress(ZLib_LibHandle,'inflateSetDictionary');
-        inflateGetDictionary := GetCheckProcAddress(ZLib_LibHandle,'inflateGetDictionary');
-        inflateSync          := GetCheckProcAddress(ZLib_LibHandle,'inflateSync');
-        inflateCopy          := GetCheckProcAddress(ZLib_LibHandle,'inflateCopy');
-        inflateReset         := GetCheckProcAddress(ZLib_LibHandle,'inflateReset');
-        inflateReset2        := GetCheckProcAddress(ZLib_LibHandle,'inflateReset2');
-        inflatePrime         := GetCheckProcAddress(ZLib_LibHandle,'inflatePrime');
-        inflateMark          := GetCheckProcAddress(ZLib_LibHandle,'inflateMark');
-        inflateGetHeader     := GetCheckProcAddress(ZLib_LibHandle,'inflateGetHeader');
-
-        inflateBack          := GetCheckProcAddress(ZLib_LibHandle,'inflateBack');
-        inflateBackEnd       := GetCheckProcAddress(ZLib_LibHandle,'inflateBackEnd');
-
-        zlibCompileFlags     := GetCheckProcAddress(ZLib_LibHandle,'zlibCompileFlags');
-
-        compress             := GetCheckProcAddress(ZLib_LibHandle,'compress');
-        compress2            := GetCheckProcAddress(ZLib_LibHandle,'compress2');
-        compressBound        := GetCheckProcAddress(ZLib_LibHandle,'compressBound');
-        uncompress           := GetCheckProcAddress(ZLib_LibHandle,'uncompress');
-        uncompress2          := GetCheckProcAddress(ZLib_LibHandle,'uncompress2');
-
-      {$IFDEF GZIP_Support}
-        gzopen               := GetCheckProcAddress(ZLib_LibHandle,'gzopen');
-        gzdopen              := GetCheckProcAddress(ZLib_LibHandle,'gzdopen');
-        gzbuffer             := GetCheckProcAddress(ZLib_LibHandle,'gzbuffer');
-        gzsetparams          := GetCheckProcAddress(ZLib_LibHandle,'gzsetparams');
-        gzread               := GetCheckProcAddress(ZLib_LibHandle,'gzread');
-        gzfread              := GetCheckProcAddress(ZLib_LibHandle,'gzfread');
-        gzwrite              := GetCheckProcAddress(ZLib_LibHandle,'gzwrite');
-        gzfwrite             := GetCheckProcAddress(ZLib_LibHandle,'gzfwrite');
-        gzprintf             := GetCheckProcAddress(ZLib_LibHandle,'gzprintf');
-        gzputs               := GetCheckProcAddress(ZLib_LibHandle,'gzputs');
-        gzgets               := GetCheckProcAddress(ZLib_LibHandle,'gzgets');
-        gzputc               := GetCheckProcAddress(ZLib_LibHandle,'gzputc');
-        gzgetc               := GetCheckProcAddress(ZLib_LibHandle,'gzgetc');
-        gzungetc             := GetCheckProcAddress(ZLib_LibHandle,'gzungetc');
-        gzflush              := GetCheckProcAddress(ZLib_LibHandle,'gzflush');
-        gzseek               := GetCheckProcAddress(ZLib_LibHandle,'gzseek');
-        gzrewind             := GetCheckProcAddress(ZLib_LibHandle,'gzrewind');
-        gztell               := GetCheckProcAddress(ZLib_LibHandle,'gztell');
-        gzoffset             := GetCheckProcAddress(ZLib_LibHandle,'gzoffset');
-        gzeof                := GetCheckProcAddress(ZLib_LibHandle,'gzeof');
-        gzdirect             := GetCheckProcAddress(ZLib_LibHandle,'gzdirect');
-        gzclose              := GetCheckProcAddress(ZLib_LibHandle,'gzclose');
-        gzclose_r            := GetCheckProcAddress(ZLib_LibHandle,'gzclose_r');
-        gzclose_w            := GetCheckProcAddress(ZLib_LibHandle,'gzclose_w');
-        gzerror              := GetCheckProcAddress(ZLib_LibHandle,'gzerror');
-        gzclearerr           := GetCheckProcAddress(ZLib_LibHandle,'gzclearerr');
-      {$ENDIF GZIP_Support}
-
-        adler32              := GetCheckProcAddress(ZLib_LibHandle,'adler32');
-        adler32_z            := GetCheckProcAddress(ZLib_LibHandle,'adler32_z');
-        adler32_combine      := GetCheckProcAddress(ZLib_LibHandle,'adler32_combine');
-        crc32                := GetCheckProcAddress(ZLib_LibHandle,'crc32');
-        crc32_z              := GetCheckProcAddress(ZLib_LibHandle,'crc32_z');
-        crc32_combine        := GetCheckProcAddress(ZLib_LibHandle,'crc32_combine');
-
-        deflateInit_         := GetCheckProcAddress(ZLib_LibHandle,'deflateInit_');
-        inflateInit_         := GetCheckProcAddress(ZLib_LibHandle,'inflateInit_');
-        deflateInit2_        := GetCheckProcAddress(ZLib_LibHandle,'deflateInit2_');
-        inflateInit2_        := GetCheckProcAddress(ZLib_LibHandle,'inflateInit2_');
-        inflateBackInit_     := GetCheckProcAddress(ZLib_LibHandle,'inflateBackInit_');
-
-      {$IFDEF GZIP_Support}
-        gzgetc_              := GetCheckProcAddress(ZLib_LibHandle,'gzgetc_');
-        gzopen64             := GetCheckProcAddress(ZLib_LibHandle,'gzopen64');
-        gzseek64             := GetCheckProcAddress(ZLib_LibHandle,'gzseek64');
-        gztell64             := GetCheckProcAddress(ZLib_LibHandle,'gztell64');
-        gzoffset64           := GetCheckProcAddress(ZLib_LibHandle,'gzoffset64');
-      {$ENDIF GZIP_Support}
-        adler32_combine64    := GetCheckProcAddress(ZLib_LibHandle,'adler32_combine64');
-        crc32_combine64      := GetCheckProcAddress(ZLib_LibHandle,'crc32_combine64');
-
-        zError               := GetCheckProcAddress(ZLib_LibHandle,'zError');
-        inflateSyncPoint     := GetCheckProcAddress(ZLib_LibHandle,'inflateSyncPoint');
-        get_crc_table        := GetCheckProcAddress(ZLib_LibHandle,'get_crc_table');
-        inflateUndermine     := GetCheckProcAddress(ZLib_LibHandle,'inflateUndermine');
-        inflateValidate      := GetCheckProcAddress(ZLib_LibHandle,'inflateValidate');
-        inflateCodesUsed     := GetCheckProcAddress(ZLib_LibHandle,'inflateCodesUsed');
-        inflateResetKeep     := GetCheckProcAddress(ZLib_LibHandle,'inflateResetKeep');
-        deflateResetKeep     := GetCheckProcAddress(ZLib_LibHandle,'deflateResetKeep');
-      {$IF Defined(GZIP_Support) and Defined(Windows)}
-        gzopen_w             := GetCheckProcAddress(ZLib_LibHandle,'gzopen_w');
-      {$IFEND}
-
-      {$IFDEF CheckCompatibility}
-        CheckCompatibility(zlibCompileFlags);
-      {$ENDIF}
-        Result := True;
-      end
-    else Result := False;
-  end
-else Result := True;
+Result := OpenLibraryAndResolveSymbols(LibPath,ZLib_LibContext,[
+  Symbol(@@zlibVersion         ,'zlibVersion'),
+  // deflate
+  Symbol(@@deflate             ,'deflate'),
+  Symbol(@@deflateEnd          ,'deflateEnd'),
+  // inflate
+  Symbol(@@inflate             ,'inflate'),
+  Symbol(@@inflateEnd          ,'inflateEnd'),
+  // deflate - specials
+  Symbol(@@deflateSetDictionary,'deflateSetDictionary'),
+  Symbol(@@deflateGetDictionary,'deflateGetDictionary'),
+  Symbol(@@deflateCopy         ,'deflateCopy'),
+  Symbol(@@deflateReset        ,'deflateReset'),
+  Symbol(@@deflateParams       ,'deflateParams'),
+  Symbol(@@deflateTune         ,'deflateTune'),
+  Symbol(@@deflateBound        ,'deflateBound'),
+  Symbol(@@deflatePending      ,'deflatePending'),
+  Symbol(@@deflatePrime        ,'deflatePrime'),
+  Symbol(@@deflateSetHeader    ,'deflateSetHeader'),
+  // inflate - specials
+  Symbol(@@inflateSetDictionary,'inflateSetDictionary'),
+  Symbol(@@inflateGetDictionary,'inflateGetDictionary'),
+  Symbol(@@inflateSync         ,'inflateSync'),
+  Symbol(@@inflateCopy         ,'inflateCopy'),
+  Symbol(@@inflateReset        ,'inflateReset'),
+  Symbol(@@inflateReset2       ,'inflateReset2'),
+  Symbol(@@inflatePrime        ,'inflatePrime'),
+  Symbol(@@inflateMark         ,'inflateMark'),
+  Symbol(@@inflateGetHeader    ,'inflateGetHeader'),
+  Symbol(@@inflateBack         ,'inflateBack'),
+  Symbol(@@inflateBackEnd      ,'inflateBackEnd'),
+  // itility and macro
+  Symbol(@@zlibCompileFlags    ,'zlibCompileFlags'),
+  Symbol(@@compress            ,'compress'),
+  Symbol(@@compress2           ,'compress2'),
+  Symbol(@@compressBound       ,'compressBound'),
+  Symbol(@@uncompress          ,'uncompress'),
+  Symbol(@@uncompress2         ,'uncompress2'),
+  // gzip
+{$IFDEF GZIP_Support}
+  Symbol(@@gzopen              ,'gzopen'),
+  Symbol(@@gzdopen             ,'gzdopen'),
+  Symbol(@@gzbuffer            ,'gzbuffer'),
+  Symbol(@@gzsetparams         ,'gzsetparams'),
+  Symbol(@@gzread              ,'gzread'),
+  Symbol(@@gzfread             ,'gzfread'),
+  Symbol(@@gzwrite             ,'gzwrite'),
+  Symbol(@@gzfwrite            ,'gzfwrite'),
+  Symbol(@@gzprintf            ,'gzprintf'),
+  Symbol(@@gzputs              ,'gzputs'),
+  Symbol(@@gzgets              ,'gzgets'),
+  Symbol(@@gzputc              ,'gzputc'),
+  Symbol(@@gzgetc              ,'gzgetc'),
+  Symbol(@@gzungetc            ,'gzungetc'),
+  Symbol(@@gzflush             ,'gzflush'),
+  Symbol(@@gzseek              ,'gzseek'),
+  Symbol(@@gzrewind            ,'gzrewind'),
+  Symbol(@@gztell              ,'gztell'),
+  Symbol(@@gzoffset            ,'gzoffset'),
+  Symbol(@@gzeof               ,'gzeof'),
+  Symbol(@@gzdirect            ,'gzdirect'),
+  Symbol(@@gzclose             ,'gzclose'),
+  Symbol(@@gzclose_r           ,'gzclose_r'),
+  Symbol(@@gzclose_w           ,'gzclose_w'),
+  Symbol(@@gzerror             ,'gzerror'),
+  Symbol(@@gzclearerr          ,'gzclearerr'),
+{$ENDIF GZIP_Support}
+  // checksums
+  Symbol(@@adler32             ,'adler32'),
+  Symbol(@@adler32_z           ,'adler32_z'),
+  Symbol(@@adler32_combine     ,'adler32_combine'),
+  Symbol(@@crc32               ,'crc32'),
+  Symbol(@@crc32_z             ,'crc32_z'),
+  Symbol(@@crc32_combine       ,'crc32_combine'),
+  // macro
+  Symbol(@@deflateInit_        ,'deflateInit_'),
+  Symbol(@@inflateInit_        ,'inflateInit_'),
+  Symbol(@@deflateInit2_       ,'deflateInit2_'),
+  Symbol(@@inflateInit2_       ,'inflateInit2_'),
+  Symbol(@@inflateBackInit_    ,'inflateBackInit_'),
+  // large file support                    
+{$IFDEF GZIP_Support}
+  Symbol(@@gzgetc_             ,'gzgetc_'),
+  Symbol(@@gzopen64            ,'gzopen64'),
+  Symbol(@@gzseek64            ,'gzseek64'),
+  Symbol(@@gztell64            ,'gztell64'),
+  Symbol(@@gzoffset64          ,'gzoffset64'),
+{$ENDIF GZIP_Support}
+  Symbol(@@adler32_combine64   ,'adler32_combine64'),
+  Symbol(@@crc32_combine64     ,'crc32_combine64'),
+  // undocumented
+  Symbol(@@zError              ,'zError'),
+  Symbol(@@inflateSyncPoint    ,'inflateSyncPoint'),
+  Symbol(@@get_crc_table       ,'get_crc_table'),
+  Symbol(@@inflateUndermine    ,'inflateUndermine'),
+  Symbol(@@inflateValidate     ,'inflateValidate'),
+  Symbol(@@inflateCodesUsed    ,'inflateCodesUsed'),
+  Symbol(@@inflateResetKeep    ,'inflateResetKeep'),
+  Symbol(@@deflateResetKeep    ,'deflateResetKeep')
+{$IF Defined(GZIP_Support) and Defined(Windows)}
+ ,Symbol(@@gzopen_w            ,'gzopen_w')
+{$IFEND}
+],True) = {$IFDEF GZIP_Support}{$IFDEF Windows}85{$ELSE}84{$ENDIF}{$ELSE}53{$ENDIF};
+{$IFDEF CheckCompatibility}
+CheckCompatibility(zlibCompileFlags);
+{$ENDIF}
 end;
 
 //------------------------------------------------------------------------------
 
 procedure ZLib_Finalize;
 begin
-If ZLib_Initialized then
-  begin
-  {$IFDEF Windows}
-    FreeLibrary(ZLib_LibHandle);
-    ZLib_LibHandle := 0;
-  {$ELSE}
-    dlclose(ZLib_LibHandle);
-    ZLib_LibHandle := nil;
-  {$ENDIF}
-  end;
+CloseLibrary(ZLib_LibContext);
 end;
+
+//== Unit initialization =======================================================
+
+initialization
+  ZLib_LibContext := DefaultLibraryContext;
 
 end.
 
