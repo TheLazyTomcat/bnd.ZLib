@@ -20,10 +20,10 @@
 
   Build against zlib version 1.2.11
 
-  Last change 2020-08-12
+  Last change 2021-11-07
 
-  ©2017-2020 František Milt
-  
+  ©2017-2021 František Milt
+
   Contacts:
     František Milt: frantisek.milt@gmail.com
 
@@ -39,9 +39,12 @@
       github.com/TheLazyTomcat/Bnd.ZLib
 
   Dependencies:
-    AuxTypes    - github.com/TheLazyTomcat/Lib.AuxTypes
-    StrRect     - github.com/TheLazyTomcat/Lib.StrRect
-    DynLibUtils - github.com/TheLazyTomcat/Lib.DynLibUtils
+    AuxTypes       - github.com/TheLazyTomcat/Lib.AuxTypes
+    StrRect        - github.com/TheLazyTomcat/Lib.StrRect
+    DynLibUtils    - github.com/TheLazyTomcat/Lib.DynLibUtils
+  * WindowsVersion - github.com/TheLazyTomcat/Lib.WindowsVersion
+
+  Library WindowsVersion is only needed when compiling for Windows OS.
 
 ===============================================================================}
 unit ZLibDynamic;
