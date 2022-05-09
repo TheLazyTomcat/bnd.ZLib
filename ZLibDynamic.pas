@@ -16,13 +16,13 @@
     This binding is distributed with all necessary binaries (object files,
     DLLs) precompiled. For details please refer to file bin_readme.txt.
 
-  Version 1.1.1 (2020-08-12)
+  Version 1.1.2 (2022-05-09)
 
-  Build against zlib version 1.2.11
+  Build against zlib version 1.2.12
 
-  Last change 2021-11-07
+  Last change 2022-05-09
 
-  ©2017-2021 František Milt
+  ©2017-2022 František Milt
 
   Contacts:
     František Milt: frantisek.milt@gmail.com
@@ -139,6 +139,8 @@ var
   crc32:                Function(crc: uLong; buf: PByte; len: uInt): uLong; cdecl;
   crc32_z:              Function(crc: uLong; buf: PByte; len: z_size_t): uLong; cdecl;
   crc32_combine:        Function(crc1, crc2: uLong; len2: z_off_t): uLong; cdecl;
+  crc32_combine_gen:    Function(len2: z_off_t): uLong; cdecl;
+  crc32_combine_op:     Function (crc1: uLong; crc2: uLong; op: uLong): uLong; cdecl;
 
   deflateInit_:         Function(strm: z_streamp; level: int; version: PAnsiChar; stream_size: int): int; cdecl;
   inflateInit_:         Function(strm: z_streamp; version: PAnsiChar; stream_size: int): int; cdecl;
@@ -155,6 +157,7 @@ var
 {$ENDIF GZIP_Support}
   adler32_combine64:    Function(adler1, adler2: uLong; len2: z_off64_t): uLong; cdecl;
   crc32_combine64:      Function(crc1, crc2: uLong; len2: z_off64_t): uLong; cdecl;
+  crc32_combine_gen64:  Function(len2: z_off64_t): uLong; cdecl;
 
   zError:               Function(errnum: int): PAnsiChar; cdecl;
   inflateSyncPoint:     Function(strm: z_streamp): int; cdecl;
@@ -312,6 +315,8 @@ Result := OpenLibraryAndResolveSymbols(LibPath,ZLib_LibContext,[
   Symbol(@@crc32               ,'crc32'),
   Symbol(@@crc32_z             ,'crc32_z'),
   Symbol(@@crc32_combine       ,'crc32_combine'),
+  Symbol(@@crc32_combine_gen   ,'crc32_combine_gen'),
+  Symbol(@@crc32_combine_op   ,'crc32_combine_op'),
   // macro
   Symbol(@@deflateInit_        ,'deflateInit_'),
   Symbol(@@inflateInit_        ,'inflateInit_'),
@@ -328,6 +333,7 @@ Result := OpenLibraryAndResolveSymbols(LibPath,ZLib_LibContext,[
 {$ENDIF GZIP_Support}
   Symbol(@@adler32_combine64   ,'adler32_combine64'),
   Symbol(@@crc32_combine64     ,'crc32_combine64'),
+  Symbol(@@crc32_combine_gen64 ,'crc32_combine_gen64'),
   // undocumented
   Symbol(@@zError              ,'zError'),
   Symbol(@@inflateSyncPoint    ,'inflateSyncPoint'),
@@ -340,7 +346,7 @@ Result := OpenLibraryAndResolveSymbols(LibPath,ZLib_LibContext,[
 {$IF Defined(GZIP_Support) and Defined(Windows)}
  ,Symbol(@@gzopen_w            ,'gzopen_w')
 {$IFEND}
-],True) = {$IFDEF GZIP_Support}{$IFDEF Windows}85{$ELSE}84{$ENDIF}{$ELSE}53{$ENDIF};
+],True) = {$IFDEF GZIP_Support}{$IFDEF Windows}88{$ELSE}87{$ENDIF}{$ELSE}56{$ENDIF};
 {$IFDEF CheckCompatibility}
 CheckCompatibility(zlibCompileFlags);
 {$ENDIF}

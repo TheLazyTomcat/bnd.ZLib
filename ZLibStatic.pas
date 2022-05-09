@@ -16,13 +16,13 @@
     This binding is distributed with all necessary binaries (object files,
     DLLs) precompiled. For details please refer to file bin_readme.txt.
 
-  Version 1.1.1 (2020-08-12)
+  Version 1.1.2 (2022-05-09)
 
-  Build against zlib version 1.2.11
+  Build against zlib version 1.2.12
 
-  Last change 2021-11-07
+  Last change 2022-05-09
 
-  ©2017-2021 František Milt
+  ©2017-2022 František Milt
 
   Contacts:
     František Milt: frantisek.milt@gmail.com
@@ -379,8 +379,7 @@ Function inflateEnd(strm: z_streamp): int; cdecl; external;
 Function deflateInit2(strm: z_streamp; level, method, windowBits, memLevel, strategy: int): int;{$IFDEF CanInline} inline; {$ENDIF}
 (*
      This is another version of deflateInit with more compression options.  The
-   fields next_in, zalloc, zfree and opaque must be initialized before by the
-   caller.
+   fields zalloc, zfree and opaque must be initialized before by the caller.
 
      The method parameter is the compression method.  It must be Z_DEFLATED in
    this version of the library.
@@ -541,11 +540,12 @@ Function deflateParams(strm: z_streamp; level, strategy: int): int; cdecl; exter
    used to switch between compression and straight copy of the input data, or
    to switch to a different kind of input data requiring a different strategy.
    If the compression approach (which is a function of the level) or the
-   strategy is changed, and if any input has been consumed in a previous
-   deflate() call, then the input available so far is compressed with the old
-   level and strategy using deflate(strm, Z_BLOCK).  There are three approaches
-   for the compression levels 0, 1..3, and 4..9 respectively.  The new level
-   and strategy will take effect at the next call of deflate().
+   strategy is changed, and if there have been any deflate() calls since the
+   state was initialized or reset, then the input available so far is
+   compressed with the old level and strategy using deflate(strm, Z_BLOCK).
+   There are three approaches for the compression levels 0, 1..3, and 4..9
+   respectively.  The new level and strategy will take effect at the next call
+   of deflate().
 
      If a deflate(strm, Z_BLOCK) is performed by deflateParams(), and it does
    not have enough output space to complete, then the parameter change will not
@@ -682,9 +682,11 @@ Function inflateInit2(strm: z_streamp; windowBits: int): int;{$IFDEF CanInline} 
    detection, or add 16 to decode only the gzip format (the zlib format will
    return a Z_DATA_ERROR).  If a gzip stream is being decoded, strm->adler is a
    CRC-32 instead of an Adler-32.  Unlike the gunzip utility and gzread() (see
-   below), inflate() will not automatically decode concatenated gzip streams.
-   inflate() will return Z_STREAM_END at the end of the gzip stream.  The state
-   would need to be reset to continue decoding a subsequent gzip stream.
+   below), inflate() will *not* automatically decode concatenated gzip members.
+   inflate() will return Z_STREAM_END at the end of the gzip member.  The state
+   would need to be reset to continue decoding a subsequent gzip member.  This
+   *must* be done if there is more data after a gzip member, in order for the
+   decompression to be compliant with the gzip standard (RFC 1952).
 
      inflateInit2 returns Z_OK if success, Z_MEM_ERROR if there was not enough
    memory, Z_VERSION_ERROR if the zlib library version is incompatible with the
@@ -1093,14 +1095,14 @@ Function uncompress2(dest: PByte; destLen: puLong; source: PByte; sourceLen: puL
 
 Function gzopen(path: PAnsiChar; mode: PAnsiChar): gzFile; cdecl; external;
 (*
-     Opens a gzip (.gz) file for reading or writing.  The mode parameter is as
-   in fopen ("rb" or "wb") but can also include a compression level ("wb9") or
-   a strategy: 'f' for filtered data as in "wb6f", 'h' for Huffman-only
-   compression as in "wb1h", 'R' for run-length encoding as in "wb1R", or 'F'
-   for fixed code compression as in "wb9F".  (See the description of
-   deflateInit2 for more information about the strategy parameter.)  'T' will
-   request transparent writing or appending with no compression and not using
-   the gzip format.
+     Open the gzip (.gz) file at path for reading and decompressing, or
+   compressing and writing.  The mode parameter is as in fopen ("rb" or "wb")
+   but can also include a compression level ("wb9") or a strategy: 'f' for
+   filtered data as in "wb6f", 'h' for Huffman-only compression as in "wb1h",
+   'R' for run-length encoding as in "wb1R", or 'F' for fixed code compression
+   as in "wb9F".  (See the description of deflateInit2 for more information
+   about the strategy parameter.)  'T' will request transparent writing or
+   appending with no compression and not using the gzip format.
 
      "a" can be used instead of "w" to request that the gzip stream that will
    be written be appended to the file.  "+" will result in an error, since
@@ -1130,9 +1132,9 @@ Function gzopen(path: PAnsiChar; mode: PAnsiChar): gzFile; cdecl; external;
 
 Function gzdopen(fd: int; mode: PAnsiChar): gzFile; cdecl; external;
 (*
-     gzdopen associates a gzFile with the file descriptor fd.  File descriptors
-   are obtained from calls like open, dup, creat, pipe or fileno (if the file
-   has been previously opened with fopen).  The mode parameter is as in gzopen.
+     Associate a gzFile with the file descriptor fd.  File descriptors are
+   obtained from calls like open, dup, creat, pipe or fileno (if the file has
+   been previously opened with fopen).  The mode parameter is as in gzopen.
 
      The next call of gzclose on the returned gzFile will also close the file
    descriptor fd, just like fclose(fdopen(fd, mode)) closes the file descriptor
@@ -1153,13 +1155,13 @@ Function gzdopen(fd: int; mode: PAnsiChar): gzFile; cdecl; external;
 
 Function gzbuffer(aFile: gzFile; size: unsigned): int; cdecl; external;
 (*
-     Set the internal buffer size used by this library's functions.  The
-   default buffer size is 8192 bytes.  This function must be called after
-   gzopen() or gzdopen(), and before any other calls that read or write the
-   file.  The buffer memory allocation is always deferred to the first read or
-   write.  Three times that size in buffer space is allocated.  A larger buffer
-   size of, for example, 64K or 128K bytes will noticeably increase the speed
-   of decompression (reading).
+     Set the internal buffer size used by this library's functions for file to
+   size.  The default buffer size is 8192 bytes.  This function must be called
+   after gzopen() or gzdopen(), and before any other calls that read or write
+   the file.  The buffer memory allocation is always deferred to the first read
+   or write.  Three times that size in buffer space is allocated.  A larger
+   buffer size of, for example, 64K or 128K bytes will noticeably increase the
+   speed of decompression (reading).
 
      The new buffer size also affects the maximum length for gzprintf().
 
@@ -1169,9 +1171,9 @@ Function gzbuffer(aFile: gzFile; size: unsigned): int; cdecl; external;
 
 Function gzsetparams(aFile: gzFile; level, strategy: int): int; cdecl; external;
 (*
-     Dynamically update the compression level or strategy.  See the description
-   of deflateInit2 for the meaning of these parameters.  Previously provided
-   data is flushed before the parameter change.
+     Dynamically update the compression level and strategy for file.  See the
+   description of deflateInit2 for the meaning of these parameters. Previously
+   provided data is flushed before applying the parameter changes.
 
      gzsetparams returns Z_OK if success, Z_STREAM_ERROR if the file was not
    opened for writing, Z_ERRNO if there is an error writing the flushed data,
@@ -1180,7 +1182,7 @@ Function gzsetparams(aFile: gzFile; level, strategy: int): int; cdecl; external;
 
 Function gzread(aFile: gzFile; buf: Pointer; len: unsigned): int; cdecl; external;
 (*
-     Reads the given number of uncompressed bytes from the compressed file.  If
+     Read and decompress up to len uncompressed bytes from file into buf.  If
    the input file is not in gzip format, gzread copies the given number of
    bytes into the buffer directly from the file.
 
@@ -1210,11 +1212,11 @@ Function gzread(aFile: gzFile; buf: Pointer; len: unsigned): int; cdecl; externa
 
 Function gzfread(buf: Pointer; size, nitems: z_size_t; aFile: gzFile): z_size_t; cdecl; external;
 (*
-     Read up to nitems items of size size from file to buf, otherwise operating
-   as gzread() does.  This duplicates the interface of stdio's fread(), with
-   size_t request and return types.  If the library defines size_t, then
-   z_size_t is identical to size_t.  If not, then z_size_t is an unsigned
-   integer type that can contain a pointer.
+     Read and decompress up to nitems items of size size from file into buf,
+   otherwise operating as gzread() does.  This duplicates the interface of
+   stdio's fread(), with size_t request and return types.  If the library
+   defines size_t, then z_size_t is identical to size_t.  If not, then z_size_t
+   is an unsigned integer type that can contain a pointer.
 
      gzfread() returns the number of full items read of size size, or zero if
    the end of the file was reached and a full item could not be read, or if
@@ -1235,14 +1237,13 @@ Function gzfread(buf: Pointer; size, nitems: z_size_t; aFile: gzFile): z_size_t;
 
 Function gzwrite(aFile: gzFile; buf: Pointer; len: unsigned): int; cdecl; external;
 (*
-     Writes the given number of uncompressed bytes into the compressed file.
-   gzwrite returns the number of uncompressed bytes written or 0 in case of
-   error.
+     Compress and write the len uncompressed bytes at buf to file. gzwrite
+   returns the number of uncompressed bytes written or 0 in case of error.
 *)
 
 Function gzfwrite(buf: Pointer; size, nintems: z_size_t; aFile: gzFile): z_size_t; cdecl; external;
 (*
-     gzfwrite() writes nitems items of size size from buf to file, duplicating
+     Compress and write nitems items of size size from buf to file, duplicating
    the interface of stdio's fwrite(), with size_t request and return types.  If
    the library defines size_t, then z_size_t is identical to size_t.  If not,
    then z_size_t is an unsigned integer type that can contain a pointer.
@@ -1255,22 +1256,22 @@ Function gzfwrite(buf: Pointer; size, nintems: z_size_t; aFile: gzFile): z_size_
 
 Function gzprintf(aFile: gzFile; format: PAnsiChar): int; cdecl; varargs; external;
 (*
-     Converts, formats, and writes the arguments to the compressed file under
-   control of the format string, as in fprintf.  gzprintf returns the number of
+     Convert, format, compress, and write the arguments (...) to file under
+   control of the string format, as in fprintf.  gzprintf returns the number of
    uncompressed bytes actually written, or a negative zlib error code in case
    of error.  The number of uncompressed bytes written is limited to 8191, or
    one less than the buffer size given to gzbuffer().  The caller should assure
    that this limit is not exceeded.  If it is exceeded, then gzprintf() will
    return an error (0) with nothing written.  In this case, there may also be a
    buffer overflow with unpredictable consequences, which is possible only if
-   zlib was compiled with the insecure functions sprintf() or vsprintf()
+   zlib was compiled with the insecure functions sprintf() or vsprintf(),
    because the secure snprintf() or vsnprintf() functions were not available.
    This can be determined using zlibCompileFlags().
 *)
 
 Function gzputs(aFile: gzFile; s: PAnsiChar): int; cdecl; external;
 (*
-     Writes the given null-terminated string to the compressed file, excluding
+     Compress and write the given null-terminated string s to file, excluding
    the terminating null character.
 
      gzputs returns the number of characters written, or -1 in case of error.
@@ -1278,11 +1279,12 @@ Function gzputs(aFile: gzFile; s: PAnsiChar): int; cdecl; external;
 
 Function gzgets(aFile: gzFile; buf: PAnsiChar; len: int): PAnsiChar; cdecl; external;
 (*
-     Reads bytes from the compressed file until len-1 characters are read, or a
-   newline character is read and transferred to buf, or an end-of-file
-   condition is encountered.  If any characters are read or if len == 1, the
-   string is terminated with a null character.  If no characters are read due
-   to an end-of-file or len < 1, then the buffer is left untouched.
+     Read and decompress bytes from file into buf, until len-1 characters are
+   read, or until a newline character is read and transferred to buf, or an
+   end-of-file condition is encountered.  If any characters are read or if len
+   is one, the string is terminated with a null character.  If no characters
+   are read due to an end-of-file or len is less than one, then the buffer is
+   left untouched.
 
      gzgets returns buf which is a null-terminated string, or it returns NULL
    for end-of-file or in case of error.  If there was an error, the contents at
@@ -1291,13 +1293,13 @@ Function gzgets(aFile: gzFile; buf: PAnsiChar; len: int): PAnsiChar; cdecl; exte
 
 Function gzputc(aFile: gzFile; c: int): int; cdecl; external;
 (*
-     Writes c, converted to an unsigned char, into the compressed file.  gzputc
+     Compress and write c, converted to an unsigned char, into file.  gzputc
    returns the value that was written, or -1 in case of error.
 *)
 
 Function gzgetc(aFile: gzFile): int; cdecl; external;
 (*
-     Reads one byte from the compressed file.  gzgetc returns this byte or -1
+     Read and decompress one byte from file.  gzgetc returns this byte or -1
    in case of end of file or error.  This is implemented as a macro for speed.
    As such, it does not do all of the checking the other functions do.  I.e.
    it does not check to see if file is NULL, nor whether the structure file
@@ -1318,9 +1320,9 @@ Function gzungetc(c: int; aFile: gzFile): int; cdecl; external;
 
 Function gzflush(aFile: gzFile; flush: int): int; cdecl; external;
 (*
-     Flushes all pending output into the compressed file.  The parameter flush
-   is as in the deflate() function.  The return value is the zlib error number
-   (see function gzerror below).  gzflush is only permitted when writing.
+     Flush all pending output to file.  The parameter flush is as in the
+   deflate() function.  The return value is the zlib error number (see function
+   gzerror below).  gzflush is only permitted when writing.
 
      If the flush parameter is Z_FINISH, the remaining data is written and the
    gzip stream is completed in the output.  If gzwrite() is called again, a new
@@ -1333,8 +1335,8 @@ Function gzflush(aFile: gzFile; flush: int): int; cdecl; external;
 
 Function gzseek(aFile: gzFile; offset: z_off_t; whence: int): z_off_t; cdecl; external;
 (*
-     Sets the starting position for the next gzread or gzwrite on the given
-   compressed file.  The offset represents a number of bytes in the
+     Set the starting position to offset relative to whence for the next gzread
+   or gzwrite on file.  The offset represents a number of bytes in the
    uncompressed data stream.  The whence parameter is defined as in lseek(2);
    the value SEEK_END is not supported.
 
@@ -1351,40 +1353,40 @@ Function gzseek(aFile: gzFile; offset: z_off_t; whence: int): z_off_t; cdecl; ex
 
 Function gzrewind(aFile: gzFile): int; cdecl; external;
 (*
-     Rewinds the given file. This function is supported only for reading.
+     Rewind file. This function is supported only for reading.
 
-     gzrewind(file) is equivalent to (int)gzseek(file, 0L, SEEK_SET)
+     gzrewind(file) is equivalent to (int)gzseek(file, 0L, SEEK_SET).
 *)
 
 
 Function gztell(aFile: gzFile): z_off_t; cdecl; external;
 (*
-     Returns the starting position for the next gzread or gzwrite on the given
-   compressed file.  This position represents a number of bytes in the
-   uncompressed data stream, and is zero when starting, even if appending or
-   reading a gzip stream from the middle of a file using gzdopen().
+     Return the starting position for the next gzread or gzwrite on file.
+   This position represents a number of bytes in the uncompressed data stream,
+   and is zero when starting, even if appending or reading a gzip stream from
+   the middle of a file using gzdopen().
 
      gztell(file) is equivalent to gzseek(file, 0L, SEEK_CUR)
 *)
 
 Function gzoffset(aFile: gzFile): z_off_t; cdecl; external;
 (*
-     Returns the current offset in the file being read or written.  This offset
-   includes the count of bytes that precede the gzip stream, for example when
-   appending or when using gzdopen() for reading.  When reading, the offset
-   does not include as yet unused buffered input.  This information can be used
-   for a progress indicator.  On error, gzoffset() returns -1.
+     Return the current compressed (actual) read or write offset of file.  This
+   offset includes the count of bytes that precede the gzip stream, for example
+   when appending or when using gzdopen() for reading.  When reading, the
+   offset does not include as yet unused buffered input.  This information can
+   be used for a progress indicator.  On error, gzoffset() returns -1.
 *)
 
 Function gzeof(aFile: gzFile): int; cdecl; external;
 (*
-     Returns true (1) if the end-of-file indicator has been set while reading,
-   false (0) otherwise.  Note that the end-of-file indicator is set only if the
-   read tried to go past the end of the input, but came up short.  Therefore,
-   just like feof(), gzeof() may return false even if there is no more data to
-   read, in the event that the last read request was for the exact number of
-   bytes remaining in the input file.  This will happen if the input file size
-   is an exact multiple of the buffer size.
+     Return true (1) if the end-of-file indicator for file has been set while
+   reading, false (0) otherwise.  Note that the end-of-file indicator is set
+   only if the read tried to go past the end of the input, but came up short.
+   Therefore, just like feof(), gzeof() may return false even if there is no
+   more data to read, in the event that the last read request was for the exact
+   number of bytes remaining in the input file.  This will happen if the input
+   file size is an exact multiple of the buffer size.
 
      If gzeof() returns true, then the read functions will return no more data,
    unless the end-of-file indicator is reset by gzclearerr() and the input file
@@ -1393,7 +1395,7 @@ Function gzeof(aFile: gzFile): int; cdecl; external;
 
 Function gzdirect(aFile: gzFile): int; cdecl; external;
 (*
-     Returns true (1) if file is being copied directly while reading, or false
+     Return true (1) if file is being copied directly while reading, or false
    (0) if file is a gzip stream being decompressed.
 
      If the input file is empty, gzdirect() will return true, since the input
@@ -1414,8 +1416,8 @@ Function gzdirect(aFile: gzFile): int; cdecl; external;
 
 Function gzclose(aFile: gzFile): int; cdecl; external;
 (*
-     Flushes all pending output if necessary, closes the compressed file and
-   deallocates the (de)compression state.  Note that once file is closed, you
+     Flush all pending output for file, if necessary, close file and
+   deallocate the (de)compression state.  Note that once file is closed, you
    cannot call gzerror with file, since its structures have been deallocated.
    gzclose must not be called more than once on the same file, just as free
    must not be called more than once on the same allocation.
@@ -1439,10 +1441,10 @@ Function gzclose_w(aFile: gzFile): int; cdecl; external;
 
 Function gzerror(aFile: gzFile; errnum: pint): PAnsiChar; cdecl; external;
 (*
-     Returns the error message for the last error which occurred on the given
-   compressed file.  errnum is set to zlib error number.  If an error occurred
-   in the file system and not in the compression library, errnum is set to
-   Z_ERRNO and the application may consult errno to get the exact error code.
+     Return the error message for the last error which occurred on file.
+   errnum is set to zlib error number.  If an error occurred in the file system
+   and not in the compression library, errnum is set to Z_ERRNO and the
+   application may consult errno to get the exact error code.
 
      The application must not modify the returned string.  Future calls to
    this function may invalidate the previously returned string.  If file is
@@ -1455,7 +1457,7 @@ Function gzerror(aFile: gzFile; errnum: pint): PAnsiChar; cdecl; external;
 
 procedure gzclearerr(aFile: gzFile); cdecl; external;
 (*
-     Clears the error and end-of-file flags for file.  This is analogous to the
+     Clear the error and end-of-file flags for file.  This is analogous to the
    clearerr() function in stdio.  This is useful for continuing to read a gzip
    file that is being written concurrently.
 *)
@@ -1472,8 +1474,9 @@ procedure gzclearerr(aFile: gzFile); cdecl; external;
 Function adler32(adler: uLong; buf: PByte; len: uInt): uLong; cdecl; external;
 (*
      Update a running Adler-32 checksum with the bytes buf[0..len-1] and
-   return the updated checksum.  If buf is Z_NULL, this function returns the
-   required initial value for the checksum.
+   return the updated checksum. An Adler-32 value is in the range of a 32-bit
+   unsigned integer. If buf is Z_NULL, this function returns the required
+   initial value for the checksum.
 
      An Adler-32 checksum is almost as reliable as a CRC-32 but can be computed
    much faster.
@@ -1507,9 +1510,10 @@ Function adler32_combine(adler1, adler2: uLong; len2: z_off_t): uLong; cdecl; ex
 Function crc32(crc: uLong; buf: PByte; len: uInt): uLong; cdecl; external;
 (*
      Update a running CRC-32 with the bytes buf[0..len-1] and return the
-   updated CRC-32.  If buf is Z_NULL, this function returns the required
-   initial value for the crc.  Pre- and post-conditioning (one's complement) is
-   performed within this function so it shouldn't be done by the application.
+   updated CRC-32. A CRC-32 value is in the range of a 32-bit unsigned integer.
+   If buf is Z_NULL, this function returns the required initial value for the
+   crc. Pre- and post-conditioning (one's complement) is performed within this
+   function so it shouldn't be done by the application.
 
    Usage example:
 
@@ -1534,6 +1538,20 @@ Function crc32_combine(crc1, crc2: uLong; len2: z_off_t): uLong; cdecl; external
    check value of seq1 and seq2 concatenated, requiring only crc1, crc2, and
    len2.
 *)
+
+Function crc32_combine_gen(len2: z_off_t): uLong; cdecl; external;
+(*
+     Return the operator corresponding to length len2, to be used with
+   crc32_combine_op().
+*)
+
+Function crc32_combine_op(crc1: uLong; crc2: uLong; op: uLong): uLong; cdecl; external;
+(*
+     Give the same result as crc32_combine(), using op in place of len2. op is
+   is generated from len2 by crc32_combine_gen(). This will be faster than
+   crc32_combine() if the generated op is used more than once.
+*)
+
 
                         (* various hacks, don't look :) *)
 
@@ -1569,6 +1587,7 @@ Function gzoffset64(aFile: gzFile): z_off64_t; cdecl; external;
 {$ENDIF GZIP_Support}
 Function adler32_combine64(adler1, adler2: uLong; len2: z_off64_t): uLong; cdecl; external;
 Function crc32_combine64(crc1, crc2: uLong; len2: z_off64_t): uLong; cdecl; external;
+Function crc32_combine_gen64(len2: z_off64_t): uLong; cdecl; external;
 
 (* undocumented functions *)
 Function zError(errnum: int): PAnsiChar; cdecl; external;
@@ -1782,10 +1801,12 @@ end;
 //------------------------------------------------------------------------------
 
 {$IFDEF Linux}{$IF Defined(FPC) and Defined(x86) and (FPC_FULLVERSION >= 30000)}
+
 Function __moddi3(a,b: Int64): Int64; cdecl; public;
 begin
 Result := a mod b;
 end;
+
 {$IFEND}{$ENDIF}
 
 //== Functions redirected to msvcrt.dll ========================================
@@ -1807,6 +1828,8 @@ var
   CRT_libfunc_errno:      Pointer;
   CRT_libfunc_write:      Pointer;
   CRT_libfunc_snprintf:   Pointer;
+  CRT_libfunc_memmove:    Pointer;
+  CRT_libfunc_lseeki64:   Pointer;
 
 //------------------------------------------------------------------------------
 
@@ -1825,8 +1848,10 @@ If OpenLibraryAndResolveSymbols('msvcrt.dll',CRT_LibContext,[
   Symbol(@CRT_libfunc_strerror ,'strerror'),
   Symbol(@CRT_libfunc_errno    ,'_errno'),
   Symbol(@CRT_libfunc_write    ,'_write'),
-  Symbol(@CRT_libfunc_snprintf ,'_snprintf')
-],True) <> 13 then
+  Symbol(@CRT_libfunc_snprintf ,'_snprintf'),
+  Symbol(@CRT_libfunc_memmove  ,'memmove'),
+  Symbol(@CRT_libfunc_lseeki64 ,'_lseeki64')
+],True) <> 15 then
   raise EZLibException.Create('Failed to initialize CRT.');
 end;
 
@@ -2001,6 +2026,30 @@ asm
     JMP   [RIP + CRT_libfunc_snprintf]
 {$ELSE}
     JMP   CRT_libfunc_snprintf
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+procedure memmove; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+asm
+{$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
+    JMP   [RIP + CRT_libfunc_memmove]
+{$ELSE}
+    JMP   CRT_libfunc_memmove
+{$ENDIF}
+end;
+
+//------------------------------------------------------------------------------
+
+procedure _lseeki64; cdecl;{$IFDEF FPC} public;{$ENDIF} assembler;{$IFDEF FPC} nostackframe; {$ENDIF}
+asm
+{$IFDEF x64}
+  {$IFNDEF FPC}.NOFRAME{$ENDIF}
+    JMP   [RIP + CRT_libfunc_lseeki64]
+{$ELSE}
+    JMP   CRT_libfunc_lseeki64
 {$ENDIF}
 end;
 
