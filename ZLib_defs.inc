@@ -36,8 +36,14 @@
   Windows NT and newer) for statically linked version.
 
   Defined by default.
+
+  To disable/undefine this symbol in a project without changing this library,
+  define project-wide symbol ZLib_GZIP_Support_Off.
 }
 {$DEFINE GZIP_Support}
+{$IFDEF ZLib_GZIP_Support_Off}
+  {$UNDEF GZIP_Support}
+{$ENDIF}
 
 {
   CheckCompatibility
@@ -48,5 +54,11 @@
   linked zlib, it is done at binding initialization.
 
   Not defined by default.
+
+  To enable/define this symbol in a project without changing this library,
+  define project-wide symbol ZLib_CheckCompatibility_On.
 }
 {.$DEFINE CheckCompatibility}
+{$IFDEF ZLib_CheckCompatibility_On}
+  {$DEFINE CheckCompatibility}
+{$ENDIF}
