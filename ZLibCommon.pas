@@ -20,7 +20,7 @@
 
   Build against zlib version 1.2.12
 
-  Last change 2022-06-25
+  Last change 2022-09-24
 
   ©2017-2022 František Milt
 
@@ -43,6 +43,7 @@
     StrRect        - github.com/TheLazyTomcat/Lib.StrRect
     DynLibUtils    - github.com/TheLazyTomcat/Lib.DynLibUtils
   * WindowsVersion - github.com/TheLazyTomcat/Lib.WindowsVersion
+    SimpleCPUID    - github.com/TheLazyTomcat/Lib.SimpleCPUID
 
   Library WindowsVersion is only needed when compiling for Windows OS.
 

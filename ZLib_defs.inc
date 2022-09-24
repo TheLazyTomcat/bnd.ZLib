@@ -15,7 +15,8 @@
 {$IFEND}
 
 {$IFDEF FPC}
-  {$MODE Delphi}
+  {$MODE ObjFPC}
+  {$MODESWITCH ClassicProcVars+}
   {$ASMMODE Intel}
   {$INLINE ON}
   {$DEFINE CanInline}
