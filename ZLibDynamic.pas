@@ -20,7 +20,7 @@
 
   Build against zlib version 1.2.12
 
-  Last change 2022-09-24
+  Last change 2022-10-23
 
   ©2017-2022 František Milt
 

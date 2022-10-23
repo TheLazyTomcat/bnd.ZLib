@@ -20,7 +20,7 @@
 
   Build against zlib version 1.2.12
 
-  Last change 2022-09-24
+  Last change 2022-10-23
 
   ©2017-2022 František Milt
 
@@ -52,7 +52,7 @@ unit ZLibStatic;
 
 {$INCLUDE '.\ZLib_defs.inc'}
 
-{$IF Defined(PurePascal) and Defined(GZIP_Support) and Defined(Windows)}
+{$IF Defined(PurePascal) and Defined(GZIP_Support) and Defined(Windows) and not Defined(CompTest)}
   {$MESSAGE WARN 'Cannot be compiled in PurePascal mode.'}
 {$IFEND}
 
